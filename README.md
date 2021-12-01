@@ -69,16 +69,15 @@ Benchmarks obtained on my T14 with AMD Ryzen 7 PRO 4750U.
 ## Day 1
 
 ```
-Day1 - Part1/(default)  time:   [486.05 ns 486.27 ns 486.52 ns]
-                        change: [-1.3150% -1.0687% -0.8585%] (p = 0.00 < 0.05)
-                        Change within noise threshold.
+Day1 - Part1/(default)  time:   [489.63 ns 491.12 ns 493.62 ns]
+Found 3 outliers among 100 measurements (3.00%)
+  1 (1.00%) high mild
+  2 (2.00%) high severe
+
+Day1 - Part2/Naive      time:   [3.0232 us 3.0333 us 3.0438 us]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+Day1 - Part2/NoAlloc    time:   [486.22 ns 486.41 ns 486.63 ns]
 Found 1 outliers among 100 measurements (1.00%)
   1 (1.00%) high mild
-
-Day1 - Part2/(default)  time:   [3.4813 us 3.4873 us 3.4934 us]
-                        change: [-0.8112% -0.5550% -0.2873%] (p = 0.00 < 0.05)
-                        Change within noise threshold.
-Found 5 outliers among 100 measurements (5.00%)
-  3 (3.00%) high mild
-  2 (2.00%) high severe
 ```

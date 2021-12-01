@@ -18,14 +18,25 @@ fn part1(data: &[u16]) -> usize {
     count_increases(data)
 }
 
-#[aoc(day1, part2)]
-fn part2(data: &[u16]) -> usize {
+#[aoc(day1, part2, Naive)]
+fn part2_naive(data: &[u16]) -> usize {
     count_increases(
         &data
             .windows(3)
             .map(|window| window.iter().sum())
-            .collect::<Vec<u16>>(),
+            .collect::<Vec<_>>(),
     )
+}
+
+/*
+   Optimization: b + c + d > a + b + c iff d > a,
+   which means, we don't need the extra allocation from part2_naive
+*/
+#[aoc(day1, part2, NoAlloc)]
+fn part2(data: &[u16]) -> usize {
+    data.windows(4)
+        .filter(|window| window[3] > window[0])
+        .count()
 }
 
 #[cfg(test)]
@@ -44,6 +55,14 @@ mod tests {
     #[test]
     fn test_part1() {
         assert_eq!(part1(&input()), 1184)
+    }
+    #[test]
+    fn test_part2_naive_given_example_input() {
+        assert_eq!(part2_naive(&example_input()), 5)
+    }
+    #[test]
+    fn test_part2_naive() {
+        assert_eq!(part2_naive(&input()), 1158)
     }
     #[test]
     fn test_part2_given_example_input() {
