@@ -63,14 +63,42 @@ mod part1 {
     }
 }
 
-#[aoc(day2, part1)]
-fn part1(data: &[Move]) -> usize {
+#[aoc(day2, part1, Naive)]
+fn part1_naive(data: &[Move]) -> usize {
     data.iter()
         .fold(part1::Position::default(), |mut pos, m| {
             pos.apply_move(m);
             pos
         })
         .pretty()
+}
+
+/*
+ * Optimization (~10% improvement):
+ * For part 1, the order of the moves doesn't matter.
+ * This means we care about 3 sums:
+ *   total horizontal moves,
+ *   total down moves,
+ *   total up moves,
+ * All of these fit in 16 bits, which means that we can combine the
+ * 3 of them within one 64 bit integer to make the sum slightly
+ * cheaper.
+ * We can then unpack the 3 values and calculate the final position
+ */
+#[aoc(day2, part1, Unordered)]
+fn part1(data: &[Move]) -> usize {
+    let combined: usize = data
+        .iter()
+        .map(|m| match m.command {
+            Command::Forward => m.value,
+            Command::Down => m.value << 16,
+            Command::Up => m.value << 32,
+        })
+        .sum();
+    let horizontal = combined << 48 >> 48;
+    let down = combined << 32 >> 48;
+    let up = combined << 16 >> 48;
+    horizontal * (down - up)
 }
 
 mod part2 {
@@ -126,8 +154,16 @@ forward 2";
     }
     use super::*;
     #[test]
+    fn test_part1_naive_given_example_input() {
+        assert_eq!(part1_naive(&example_input()), 150)
+    }
+    #[test]
     fn test_part1_given_example_input() {
         assert_eq!(part1(&example_input()), 150)
+    }
+    #[test]
+    fn test_part1_naive() {
+        assert_eq!(part1_naive(&input()), 1746616)
     }
     #[test]
     fn test_part1() {

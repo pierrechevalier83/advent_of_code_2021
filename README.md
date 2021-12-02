@@ -85,12 +85,18 @@ Found 1 outliers among 100 measurements (1.00%)
 ## Day 2
 
 ```
-Day2 - Part1/(default)  time:   [1.2009 us 1.2021 us 1.2033 us]
+Day2 - Part1/Naive      time:   [1.2443 us 1.2464 us 1.2485 us]
+Found 17 outliers among 100 measurements (17.00%)
+  3 (3.00%) low severe
+  13 (13.00%) low mild
+  1 (1.00%) high severe
+Day2 - Part1/Unordered  time:   [1.1393 us 1.1401 us 1.1409 us]
 Found 2 outliers among 100 measurements (2.00%)
-  2 (2.00%) low mild
+  1 (1.00%) high mild
+  1 (1.00%) high severe
 
-Day2 - Part2/(default)  time:   [1.1874 us 1.1896 us 1.1923 us]
+Day2 - Part2/(default)  time:   [1.3397 us 1.3408 us 1.3422 us]
 Found 6 outliers among 100 measurements (6.00%)
-  4 (4.00%) high mild
-  2 (2.00%) high severe
+  3 (3.00%) high mild
+  3 (3.00%) high severe
 ```
