@@ -27,9 +27,10 @@ fn part2_naive(data: &[u16]) -> usize {
 }
 
 /*
-   Optimization: b + c + d > a + b + c iff d > a,
-   which means, we don't need the extra allocation from part2_naive
-*/
+ * Optimization (~6X improvement):
+ * b + c + d > a + b + c iff d > a,
+ * which means, we don't need the extra allocation from part2_naive
+ */
 #[aoc(day1, part2, NoAlloc)]
 fn part2(data: &[u16]) -> usize {
     data.windows(4)
