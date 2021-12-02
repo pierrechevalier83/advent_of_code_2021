@@ -16,8 +16,10 @@ struct Move {
 impl FromStr for Move {
     type Err = &'static str;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut split = s.split(" ");
-        let command = match split.next().ok_or("Unexpected empty line")? {
+        let (first, second) = s
+            .split_once(" ")
+            .ok_or("Unexpected line: expected two space separated words")?;
+        let command = match first {
             "forward" => Command::Forward,
             "down" => Command::Down,
             "up" => Command::Up,
@@ -25,17 +27,14 @@ impl FromStr for Move {
                 return Err("Unexpected command");
             }
         };
-        let value: usize = split
-            .next()
-            .and_then(|next| next.parse().ok())
-            .ok_or("Unexpected value")?;
+        let value: usize = second.parse().or(Err("Unexpected value"))?;
         Ok(Self { command, value })
     }
 }
 
 #[aoc_generator(day2)]
 fn parse_input(data: &str) -> Vec<Move> {
-    data.split_terminator('\n')
+    data.lines()
         .map(Move::from_str)
         .collect::<Result<Vec<_>, _>>()
         .unwrap()

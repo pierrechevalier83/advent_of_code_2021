@@ -2,9 +2,7 @@ use aoc_runner_derive::{aoc, aoc_generator};
 
 #[aoc_generator(day1)]
 fn parse_input(data: &str) -> Vec<u16> {
-    data.split_terminator('\n')
-        .map(|s| s.parse().unwrap())
-        .collect::<Vec<_>>()
+    data.lines().map(|s| s.parse().unwrap()).collect::<Vec<_>>()
 }
 
 fn count_increases(data: &[u16]) -> usize {
