@@ -81,3 +81,16 @@ Day1 - Part2/NoAlloc    time:   [486.22 ns 486.41 ns 486.63 ns]
 Found 1 outliers among 100 measurements (1.00%)
   1 (1.00%) high mild
 ```
+
+## Day 2
+
+```
+Day2 - Part1/(default)  time:   [1.2009 us 1.2021 us 1.2033 us]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) low mild
+
+Day2 - Part2/(default)  time:   [1.1874 us 1.1896 us 1.1923 us]
+Found 6 outliers among 100 measurements (6.00%)
+  4 (4.00%) high mild
+  2 (2.00%) high severe
+```
