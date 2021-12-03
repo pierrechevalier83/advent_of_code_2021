@@ -100,3 +100,17 @@ Found 6 outliers among 100 measurements (6.00%)
   3 (3.00%) high mild
   3 (3.00%) high severe
 ```
+
+## Day 3
+
+```
+Day3 - Part1/(default)  time:   [591.20 ns 591.29 ns 591.36 ns]
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low severe
+  5 (5.00%) high mild
+
+Day3 - Part2/(default)  time:   [16.234 us 16.267 us 16.306 us]
+Found 18 outliers among 100 measurements (18.00%)
+  4 (4.00%) low severe
+  14 (14.00%) low mild
+```
