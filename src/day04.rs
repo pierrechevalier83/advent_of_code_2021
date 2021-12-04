@@ -36,24 +36,48 @@ impl FromStr for Board {
 
 #[derive(Debug)]
 struct VisitedBoard {
-    row_first: [[bool; BINGO_GRID_COLS]; BINGO_GRID_ROWS],
-    col_first: [[bool; BINGO_GRID_COLS]; BINGO_GRID_ROWS],
+    row_first: u32,
+    col_first: u32,
 }
 
 impl VisitedBoard {
     fn new() -> Self {
         Self {
-            row_first: [[false; BINGO_GRID_COLS]; BINGO_GRID_ROWS],
-            col_first: [[false; BINGO_GRID_COLS]; BINGO_GRID_ROWS],
+            row_first: 0,
+            col_first: 0,
         }
     }
+    fn row_first_index(row: usize, col: usize) -> usize {
+        row * BINGO_GRID_COLS + col
+    }
+    fn col_first_index(row: usize, col: usize) -> usize {
+        col * BINGO_GRID_ROWS + row
+    }
     fn visit(&mut self, row: usize, col: usize) {
-        self.row_first[row][col] = true;
-        self.col_first[col][row] = true;
+        self.row_first |= 1 << Self::row_first_index(row, col);
+        self.col_first |= 1 << Self::col_first_index(row, col);
     }
     fn winning(&self) -> bool {
-        self.row_first.iter().any(|row| row.iter().all(|x| *x))
-            || self.col_first.iter().any(|col| col.iter().all(|x| *x))
+        for index in 0..BINGO_GRID_ROWS {
+            if (self.row_first >> (5 * index)).trailing_ones() as usize >= BINGO_GRID_COLS {
+                return true;
+            }
+        }
+        for index in 0..BINGO_GRID_COLS {
+            if (self.col_first >> (5 * index)).trailing_ones() as usize >= BINGO_GRID_ROWS {
+                return true;
+            }
+        }
+        false
+    }
+    fn row_first(&self) -> [[bool; BINGO_GRID_COLS]; BINGO_GRID_ROWS] {
+        let mut ret = [[false; BINGO_GRID_COLS]; BINGO_GRID_ROWS];
+        for (row_index, row) in ret.iter_mut().enumerate() {
+            for (col_index, val) in row.iter_mut().enumerate() {
+                *val = (self.row_first >> Self::row_first_index(row_index, col_index)) & 1 == 1;
+            }
+        }
+        ret
     }
 }
 
@@ -120,7 +144,7 @@ impl Bingo {
             .iter()
             .map(|winning_board| {
                 self.visited[*winning_board]
-                    .row_first
+                    .row_first()
                     .iter()
                     .enumerate()
                     .map(|(row_index, row)| {
