@@ -81,25 +81,52 @@ impl VisitedBoard {
     }
 }
 
+#[derive(Debug, Clone, Copy)]
+struct Position {
+    board_index: usize,
+    row_index: usize,
+    col_index: usize,
+}
+
+const MAX_BINGO_VALUE: usize = 100;
+
 #[derive(Debug, Clone)]
 struct BingoInput {
     nums: Vec<u8>,
     boards: Vec<Board>,
+    positions: Vec<Vec<Position>>,
 }
 
 impl FromStr for BingoInput {
     type Err = &'static str;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (nums_str, boards_str) = s.split_once("\n\n").ok_or("Surprising input shape")?;
+        let boards = boards_str
+            .split("\n\n")
+            .map(Board::from_str)
+            .collect::<Result<Vec<_>, _>>()?;
+        let mut positions: Vec<Vec<Position>> = repeat(Vec::with_capacity(100))
+            .take(MAX_BINGO_VALUE)
+            .collect();
+        boards.iter().enumerate().for_each(|(board_index, board)| {
+            board.data.iter().enumerate().for_each(|(row_index, row)| {
+                row.iter().enumerate().for_each(|(col_index, val)| {
+                    positions[*val as usize].push(Position {
+                        board_index,
+                        row_index,
+                        col_index,
+                    });
+                })
+            })
+        });
+
         Ok(Self {
             nums: nums_str
                 .split(",")
                 .map(|s| s.parse().map_err(|_| "Incorrect value in nums"))
                 .collect::<Result<_, _>>()?,
-            boards: boards_str
-                .split("\n\n")
-                .map(Board::from_str)
-                .collect::<Result<_, _>>()?,
+            boards,
+            positions,
         })
     }
 }
@@ -173,19 +200,9 @@ impl Iterator for Bingo {
             return None;
         }
         let draw = self.input.nums[self.index_to_draw_next];
-        self.input
-            .boards
-            .iter()
-            .enumerate()
-            .for_each(|(board_index, board)| {
-                board.data.iter().enumerate().for_each(|(row_index, row)| {
-                    row.iter().enumerate().for_each(|(col_index, value)| {
-                        if *value == draw {
-                            self.visited[board_index].visit(row_index, col_index)
-                        }
-                    })
-                })
-            });
+        for pos in &self.input.positions[draw as usize] {
+            self.visited[pos.board_index].visit(pos.row_index, pos.col_index)
+        }
         self.index_to_draw_next += 1;
         let winning_boards = self.winning_boards();
         for winning_board in &winning_boards {
