@@ -114,3 +114,11 @@ Found 18 outliers among 100 measurements (18.00%)
   4 (4.00%) low severe
   14 (14.00%) low mild
 ```
+
+## Day 4
+
+```
+Day4 - Part1/(default)  time:   [129.34 us 129.91 us 130.49 us]
+
+Day4 - Part2/(default)  time:   [361.83 us 362.13 us 362.46 us]
+```
