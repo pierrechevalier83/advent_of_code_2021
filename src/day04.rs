@@ -3,45 +3,48 @@ use aoc_runner_derive::{aoc, aoc_generator};
 use std::iter::repeat;
 use std::str::FromStr;
 
+const BINGO_GRID_COLS: usize = 5;
+const BINGO_GRID_ROWS: usize = 5;
+
 #[derive(Debug, Clone)]
 struct Board {
-    data: Vec<Vec<u8>>,
+    data: [[u8; BINGO_GRID_COLS]; BINGO_GRID_ROWS],
 }
 
 impl FromStr for Board {
     type Err = &'static str;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let data = s
-            .lines()
+        let mut data = [[0; BINGO_GRID_ROWS]; BINGO_GRID_COLS];
+        s.lines()
             .filter(|line| !line.is_empty())
-            .map(|line| {
+            .enumerate()
+            .map(|(row_index, line)| {
                 line.split_whitespace()
-                    .map(|word| {
-                        word.parse::<u8>()
-                            .map_err(|_| "Failed to parse board value")
+                    .enumerate()
+                    .map(|(col_index, word)| {
+                        data[row_index][col_index] = word
+                            .parse::<u8>()
+                            .map_err(|_| "Failed to parse board value")?;
+                        Ok(())
                     })
-                    .collect::<Result<Vec<_>, _>>()
+                    .collect::<Result<_, _>>()
             })
-            .collect::<Result<Vec<_>, _>>()?;
+            .collect::<Result<_, _>>()?;
         Ok(Self { data })
     }
 }
 
 #[derive(Debug)]
 struct VisitedBoard {
-    row_first: Vec<Vec<bool>>,
-    col_first: Vec<Vec<bool>>,
+    row_first: [[bool; BINGO_GRID_COLS]; BINGO_GRID_ROWS],
+    col_first: [[bool; BINGO_GRID_COLS]; BINGO_GRID_ROWS],
 }
 
 impl VisitedBoard {
-    fn new(rows: usize, cols: usize) -> Self {
+    fn new() -> Self {
         Self {
-            row_first: repeat(repeat(false).take(rows).collect())
-                .take(cols)
-                .collect(),
-            col_first: repeat(repeat(false).take(cols).collect())
-                .take(rows)
-                .collect(),
+            row_first: [[false; BINGO_GRID_COLS]; BINGO_GRID_ROWS],
+            col_first: [[false; BINGO_GRID_COLS]; BINGO_GRID_ROWS],
         }
     }
     fn visit(&mut self, row: usize, col: usize) {
@@ -89,13 +92,7 @@ impl Bingo {
     fn from_input(input: &BingoInput) -> Self {
         Self {
             input: input.clone(),
-            visited: input
-                .boards
-                .iter()
-                .map(|input_board| {
-                    VisitedBoard::new(input_board.data.len(), input_board.data[0].len())
-                })
-                .collect(),
+            visited: input.boards.iter().map(|_| VisitedBoard::new()).collect(),
             index_to_draw_next: 0,
             won: repeat(false).take(input.boards.len()).collect(),
         }
