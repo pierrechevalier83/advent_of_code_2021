@@ -113,36 +113,46 @@ struct Grid {
     // Optimization: allocate some space, but get very fast access in return
     // Benchmarked against HashMap and BTreeMap
     // This is 4-5 times faster than BTreeMap and 2-3 times faster than HashMap
-    data: Vec<Vec<usize>>,
+    data: Vec<usize>,
+}
+
+fn row_major_index(p: Point, n_cols: usize) -> usize {
+    p.y as usize * n_cols + p.x as usize
 }
 
 impl Grid {
     fn from_segments(segments: &[Segment], mapping_mode: MappingMode) -> Self {
-        let max_x = segments.iter().map(|segment| segment.start.x.max(segment.end.x)).max().unwrap() as usize;
-        let max_y = segments.iter().map(|segment| segment.start.y.max(segment.end.y)).max().unwrap() as usize;
-        let mut data: Vec<Vec<usize>> = repeat(repeat(0).take(max_y + 1).collect())
-            .take(max_x + 1)
-            .collect();
+        let n_cols = segments
+            .iter()
+            .map(|segment| segment.start.x.max(segment.end.x))
+            .max()
+            .unwrap() as usize
+            + 1;
+        let n_rows = segments
+            .iter()
+            .map(|segment| segment.start.y.max(segment.end.y))
+            .max()
+            .unwrap() as usize
+            + 1;
+        let mut data: Vec<usize> = repeat(0).take(n_cols * n_rows).collect();
         for segment in segments {
             let mut last_segment = None;
             match mapping_mode {
                 MappingMode::Orthogonal => {
                     for shorter_segment in OrthogonalSegmentIterator(*segment) {
                         last_segment = Some(shorter_segment);
-                        data[shorter_segment.start.x as usize][shorter_segment.start.y as usize] +=
-                            1;
+                        data[row_major_index(shorter_segment.start, n_cols)] += 1;
                     }
                 }
                 MappingMode::OrthogonalOrDiagonal => {
                     for shorter_segment in OrthogonalOrDiagonalSegmentIterator(*segment) {
                         last_segment = Some(shorter_segment);
-                        data[shorter_segment.start.x as usize][shorter_segment.start.y as usize] +=
-                            1;
+                        data[row_major_index(shorter_segment.start, n_cols)] += 1;
                     }
                 }
             };
             if let Some(last_segment) = last_segment {
-                data[last_segment.end.x as usize][last_segment.end.y as usize] += 1;
+                data[row_major_index(last_segment.start, n_cols)] += 1;
             }
         }
         Self { data }
@@ -150,11 +160,7 @@ impl Grid {
     fn count_gt_one(&self) -> usize {
         self.data
             .iter()
-            .map(|row| {
-                row.iter()
-                    .map(|value| if *value > 1 { 1 } else { 0 })
-                    .sum::<usize>()
-            })
+            .map(|value| if *value > 1 { 1 } else { 0 })
             .sum()
     }
 }

@@ -132,13 +132,13 @@ Found 6 outliers among 100 measurements (6.00%)
 ## Day 5
 
 ```
-Day5 - Part1/(default)  time:   [3.3847 ms 3.3912 ms 3.4013 ms]
-Found 5 outliers among 100 measurements (5.00%)
+Day5 - Part1/(default)  time:   [1.8155 ms 1.8168 ms 1.8182 ms]
+Found 4 outliers among 100 measurements (4.00%)
   2 (2.00%) high mild
-  3 (3.00%) high severe
+  2 (2.00%) high severe
 
-Day5 - Part2/(default)  time:   [4.1908 ms 4.2067 ms 4.2239 ms]
-                        change: [-3.3135% -2.8849% -2.4770%] (p = 0.00 < 0.05)
-  6 (6.00%) high mild
-  3 (3.00%) high severe
+Day5 - Part2/(default)  time:   [2.5128 ms 2.5204 ms 2.5286 ms]
+Found 11 outliers among 100 measurements (11.00%)
+  7 (7.00%) high mild
+  4 (4.00%) high severe
   ```
