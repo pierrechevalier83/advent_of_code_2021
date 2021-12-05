@@ -1,3 +1,5 @@
 /target
 **/*.rs.bk
 dayX.rs
+flamegraph.svg
+perf.data*
