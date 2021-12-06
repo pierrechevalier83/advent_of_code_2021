@@ -18,8 +18,8 @@ fn parse_input(data: &str) -> Input {
 
 fn count_bits(values: &[u16]) -> [u16; 16] {
     values.iter().fold([0; 16], |mut counts, i| {
-        for bit_index in 0..16 {
-            counts[bit_index] += i >> bit_index & 1;
+        for (bit_index, count) in counts.iter_mut().enumerate() {
+            *count += i >> bit_index & 1;
         }
         counts
     })

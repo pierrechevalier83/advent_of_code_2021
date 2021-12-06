@@ -6,8 +6,8 @@ struct Counts([usize; 9]);
 impl Counts {
     fn from_ages(ages: &[u8]) -> Self {
         let mut counts = [0; 9];
-        for i in 0..9 {
-            counts[i] = ages.iter().filter(|x| **x as usize == i).count();
+        for (i, count) in counts.iter_mut().enumerate() {
+            *count = ages.iter().filter(|x| **x as usize == i).count();
         }
         Counts(counts)
     }
@@ -18,7 +18,7 @@ fn parse_input(data: &str) -> Counts {
     Counts::from_ages(
         &data
             .trim()
-            .split(",")
+            .split(',')
             .map(|s| s.parse().unwrap())
             .collect::<Vec<_>>(),
     )

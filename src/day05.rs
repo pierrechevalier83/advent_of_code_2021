@@ -42,10 +42,16 @@ impl FromStr for Segment {
 }
 
 fn move_start_towards_end(start: &mut u16, end: u16) {
-    if *start < end {
-        *start += 1;
-    } else if *start > end {
-        *start -= 1;
+    match (*start).cmp(&end) {
+        std::cmp::Ordering::Less => {
+            *start += 1;
+        }
+        std::cmp::Ordering::Greater => {
+            *start -= 1;
+        }
+        _ => {
+            // start already at end. Do nothing
+        }
     }
 }
 

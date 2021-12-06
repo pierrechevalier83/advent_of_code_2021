@@ -18,18 +18,16 @@ impl FromStr for Board {
         s.lines()
             .filter(|line| !line.is_empty())
             .enumerate()
-            .map(|(row_index, line)| {
+            .try_for_each(|(row_index, line)| {
                 line.split_whitespace()
                     .enumerate()
-                    .map(|(col_index, word)| {
+                    .try_for_each(|(col_index, word)| {
                         data[row_index][col_index] = word
                             .parse::<u8>()
                             .map_err(|_| "Failed to parse board value")?;
                         Ok(())
                     })
-                    .collect::<Result<_, _>>()
-            })
-            .collect::<Result<_, _>>()?;
+            })?;
         Ok(Self { data })
     }
 }
@@ -122,7 +120,7 @@ impl FromStr for BingoInput {
 
         Ok(Self {
             nums: nums_str
-                .split(",")
+                .split(',')
                 .map(|s| s.parse().map_err(|_| "Incorrect value in nums"))
                 .collect::<Result<_, _>>()?,
             boards,
