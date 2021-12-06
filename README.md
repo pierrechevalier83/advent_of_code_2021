@@ -3,6 +3,8 @@ My solutions for the "advent of code" challenge of 2021.
 
 [Advent of code 2021](https://adventofcode.com/2021)
 
+[![Unit tests](https://github.com/pierrechevalier83/advent_of_code_2021/actions/workflows/rust.yml/badge.svg)](https://github.com/pierrechevalier83/advent_of_code_2021/actions/workflows/rust.yml)
+
 This crate uses `cargo-aoc` for automating the boilerplate.
 
 To install it, run
