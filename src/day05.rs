@@ -5,8 +5,8 @@ use std::str::FromStr;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 struct Point {
-    x: u16,
-    y: u16,
+    row: u16,
+    col: u16,
 }
 
 impl FromStr for Point {
@@ -14,8 +14,8 @@ impl FromStr for Point {
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let (l, r) = s.split_once(',').ok_or("Unexpected format for Point")?;
         Ok(Self {
-            x: l.parse().map_err(|_| "Unexpected format for Point.x")?,
-            y: r.parse().map_err(|_| "Unexpected format for Point.y")?,
+            row: l.parse().map_err(|_| "Unexpected format for Point.x")?,
+            col: r.parse().map_err(|_| "Unexpected format for Point.y")?,
         })
     }
 }
@@ -58,12 +58,12 @@ impl Iterator for OrthogonalSegmentIterator {
         } else {
             let prev = self.0;
             // horizontal
-            if self.0.start.x == self.0.end.x {
-                move_start_towards_end(&mut self.0.start.y, self.0.end.y);
+            if self.0.start.row == self.0.end.row {
+                move_start_towards_end(&mut self.0.start.col, self.0.end.col);
                 Some(prev)
             // vertical
-            } else if self.0.start.y == self.0.end.y {
-                move_start_towards_end(&mut self.0.start.x, self.0.end.x);
+            } else if self.0.start.col == self.0.end.col {
+                move_start_towards_end(&mut self.0.start.row, self.0.end.row);
                 Some(prev)
             // ignore diagonals
             } else {
@@ -82,19 +82,19 @@ impl Iterator for OrthogonalOrDiagonalSegmentIterator {
         } else {
             let prev = self.0;
             // horizontal
-            if self.0.start.x == self.0.end.x {
-                move_start_towards_end(&mut self.0.start.y, self.0.end.y);
+            if self.0.start.row == self.0.end.row {
+                move_start_towards_end(&mut self.0.start.col, self.0.end.col);
                 Some(prev)
             // vertical
-            } else if self.0.start.y == self.0.end.y {
-                move_start_towards_end(&mut self.0.start.x, self.0.end.x);
+            } else if self.0.start.col == self.0.end.col {
+                move_start_towards_end(&mut self.0.start.row, self.0.end.row);
                 Some(prev)
                 // diagonal
-            } else if (self.0.end.x as i16 - self.0.start.x as i16).abs()
-                == (self.0.end.y as i16 - self.0.start.y as i16).abs()
+            } else if (self.0.end.row as i16 - self.0.start.row as i16).abs()
+                == (self.0.end.col as i16 - self.0.start.col as i16).abs()
             {
-                move_start_towards_end(&mut self.0.start.x, self.0.end.x);
-                move_start_towards_end(&mut self.0.start.y, self.0.end.y);
+                move_start_towards_end(&mut self.0.start.row, self.0.end.row);
+                move_start_towards_end(&mut self.0.start.col, self.0.end.col);
                 Some(prev)
             } else {
                 None
@@ -117,20 +117,20 @@ struct Grid {
 }
 
 fn row_major_index(p: Point, n_cols: usize) -> usize {
-    p.y as usize * n_cols + p.x as usize
+    p.row as usize * n_cols + p.col as usize
 }
 
 impl Grid {
     fn from_segments(segments: &[Segment], mapping_mode: MappingMode) -> Self {
         let n_cols = segments
             .iter()
-            .map(|segment| segment.start.x.max(segment.end.x))
+            .map(|segment| segment.start.col.max(segment.end.col))
             .max()
             .unwrap() as usize
             + 1;
         let n_rows = segments
             .iter()
-            .map(|segment| segment.start.y.max(segment.end.y))
+            .map(|segment| segment.start.row.max(segment.end.row))
             .max()
             .unwrap() as usize
             + 1;
@@ -152,7 +152,7 @@ impl Grid {
                 }
             };
             if let Some(last_segment) = last_segment {
-                data[row_major_index(last_segment.start, n_cols)] += 1;
+                data[row_major_index(last_segment.end, n_cols)] += 1;
             }
         }
         Self { data }
