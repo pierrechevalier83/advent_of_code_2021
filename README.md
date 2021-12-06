@@ -142,3 +142,17 @@ Found 11 outliers among 100 measurements (11.00%)
   7 (7.00%) high mild
   4 (4.00%) high severe
   ```
+
+## Day 6
+
+```
+Day6 - Part1/(default)  time:   [468.32 ns 469.11 ns 470.13 ns]
+Found 6 outliers among 100 measurements (6.00%)
+  2 (2.00%) high mild
+  4 (4.00%) high severe
+
+Day6 - Part2/(default)  time:   [1.4850 us 1.4852 us 1.4854 us]
+Found 12 outliers among 100 measurements (12.00%)
+  5 (5.00%) high mild
+  7 (7.00%) high severe
+```
