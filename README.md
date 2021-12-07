@@ -158,3 +158,19 @@ Found 12 outliers among 100 measurements (12.00%)
   5 (5.00%) high mild
   7 (7.00%) high severe
 ```
+
+## Day 7
+
+```
+Day7 - Part1/(default)  time:   [11.700 us 11.710 us 11.722 us]
+Found 8 outliers among 100 measurements (8.00%)
+  5 (5.00%) high mild
+  3 (3.00%) high severe
+
+Day7 - Part2/(default)  time:   [27.100 us 27.118 us 27.142 us]
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low severe
+  1 (1.00%) low mild
+  2 (2.00%) high mild
+  2 (2.00%) high severe
+  ```
