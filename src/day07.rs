@@ -48,7 +48,11 @@ fn part1(data: &[isize]) -> usize {
 
 fn total_fuel_cost_part2(data: &[isize], target: isize) -> usize {
     data.iter()
-        .map(|x| (0..(*x - target).abs()).map(|x| x + 1).sum::<isize>() as usize)
+        .map(|x| {
+            let min = 1;
+            let max = (*x - target).abs() + 1;
+            ((max - min) * (max) / 2) as usize
+        })
         .sum()
 }
 
