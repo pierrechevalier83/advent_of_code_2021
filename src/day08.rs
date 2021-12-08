@@ -1,38 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
-/*
-    0:      1:      2:      3:      4:
- aaaa    ....    aaaa    aaaa    ....
-b    c  .    c  .    c  .    c  b    c
-b    c  .    c  .    c  .    c  b    c
- ....    ....    dddd    dddd    dddd
-e    f  .    f  e    .  .    f  .    f
-e    f  .    f  e    .  .    f  .    f
- gggg    ....    gggg    gggg    ....
-
-  5:      6:      7:      8:      9:
- aaaa    aaaa    aaaa    aaaa    aaaa
-b    .  b    .  .    c  b    c  b    c
-b    .  b    .  .    c  b    c  b    c
- dddd    dddd    ....    dddd    dddd
-.    f  e    f  .    f  e    f  .    f
-.    f  e    f  .    f  e    f  .    f
- gggg    gggg    ....    gggg    gggg";
-
-
-
-
-a -> 7
-b -> 6
-c -> 8
-d -> 7
-e -> 4
-f -> 9 (in all but 2)
-g -> 7
-
-b, c, e and f are unique
- * */
-
 struct Input {
     digits: Vec<String>,
     output: Vec<String>,
@@ -74,28 +41,25 @@ fn part1(data: &[Input]) -> usize {
         .count()
 }
 
-// digit, length
-// 0 -> 6
-// 1 -> 2
-// 2 -> 5
-// 3 -> 5
-// 4 -> 4
-// 5 -> 5
-// 6 -> 6
-// 7 -> 3
-// 8 -> 7
-// 9 -> 6
-
-// letter to n occurences in digits:
-// a -> 8
-// b -> 6
-// c -> 8
-// d -> 7
-// e -> 4
-// f -> 9 (in all but 2)
-// g -> 7
-
-// (b, c, e and f are unique)
+/*
+letter to n occurences in digits:
+a -> 8
+b -> 6 // unique
+c -> 8
+d -> 7
+e -> 4 // unique
+f -> 9 // unique
+g -> 7
+*/
+fn count_segment_occurrences(input: &[String]) -> [usize; 7] {
+    let mut n_occurrences_of_digit = [0; 7];
+    for s in input {
+        for c in s.chars() {
+            n_occurrences_of_digit[c as usize - 'a' as usize] += 1;
+        }
+    }
+    n_occurrences_of_digit
+}
 
 fn occurs_n_times(
     n_occurrences_of_digit: &[usize; 7],
@@ -106,56 +70,6 @@ fn occurs_n_times(
         .enumerate()
         .filter(move |(_, n)| **n == target_n)
         .map(|(index, _)| char::from_u32('a' as u32 + index as u32).unwrap())
-}
-
-// mapping:
-//  a  b  c  d  e  f  g
-// [0, 1, 2, 3, 4, 5, 6]
-fn map_digits(input: &[String]) -> [char; 7] {
-    let mut res = ['_'; 7];
-    // count occurrences
-    let mut n_occurrences_of_digit = [0; 7];
-    for s in input {
-        for c in s.chars() {
-            n_occurrences_of_digit[c as usize - 'a' as usize] += 1;
-        }
-    }
-    let one = input.iter().find(|s| s.len() == 2).unwrap();
-    let seven = input.iter().find(|s| s.len() == 3).unwrap();
-    let four = input.iter().find(|s| s.len() == 4).unwrap();
-    // digits 1 and 7 differ by what 'a' maps to
-    let a = seven
-        .chars()
-        .find(|x| !one.chars().any(|ref c| c == x))
-        .unwrap();
-    res[a as usize - 'a' as usize] = 'a';
-
-    // b is the only one that occurs 6 times
-    let b = occurs_n_times(&n_occurrences_of_digit, 6).next().unwrap();
-    res[b as usize - 'a' as usize] = 'b';
-
-    // c occurs 8 times and is not a
-    let c = occurs_n_times(&n_occurrences_of_digit, 8)
-        .find(|x| *x != a)
-        .unwrap();
-    res[c as usize - 'a' as usize] = 'c';
-
-    // e  is the only one that occurs 4 times
-    let e = occurs_n_times(&n_occurrences_of_digit, 4).next().unwrap();
-    res[e as usize - 'a' as usize] = 'e';
-
-    // f is the only one that occurs 9 times
-    let f = occurs_n_times(&n_occurrences_of_digit, 9).next().unwrap();
-    res[f as usize - 'a' as usize] = 'f';
-
-    // display(4) == bcdf, so 'd' is the only char of display(4) that's not b, c or f
-    let d = four.chars().find(|&x| x != b && x != c && x != f).unwrap();
-    res[d as usize - 'a' as usize] = 'd';
-
-    // the last digit we haven't seen is g
-    let g_index = res.iter().enumerate().find(|(_, &c)| c == '_').unwrap().0;
-    res[g_index] = 'g';
-    res
 }
 
 /*
@@ -177,45 +91,86 @@ b    .  b    .  .    c  b    c  b    c
 .    f  e    f  .    f  e    f  .    f
  gggg    gggg    ....    gggg    gggg";
 
+digit, length
+0 -> 6
+1 -> 2 // unique
+2 -> 5
+3 -> 5
+4 -> 4 // unique
+5 -> 5
+6 -> 6
+7 -> 3 // unique
+8 -> 7 // unique
+9 -> 6
  * */
-fn parse_digit(display: &str) -> u8 {
-    let mut sorted_chars = display.chars().collect::<Vec<_>>();
-    sorted_chars.sort();
-    let sorted_chars = sorted_chars.into_iter().collect::<String>();
-    match sorted_chars.as_str() {
-        "abcefg" => 0,
-        "cf" => 1,
-        "acdeg" => 2,
-        "acdfg" => 3,
-        "bcdf" => 4,
-        "abdfg" => 5,
-        "abdefg" => 6,
-        "acf" => 7,
-        "abcdefg" => 8,
-        "abcdfg" => 9,
+fn parse_digit(input: &[String], digit_display: &str, occurrences: &mut Option<[usize; 7]>) -> usize {
+    match digit_display.len() {
+        2 => 1,
+        3 => 7,
+        4 => 4,
+        5 => {
+            if occurrences.is_none() {
+                *occurrences = Some(count_segment_occurrences(input));
+            }
+            // b is the only one that occurs 6 times
+            let b = occurs_n_times(&occurrences.unwrap(), 6).next().unwrap();
+            if digit_display.chars().any(|x| x == b) {
+                // in 2, 3, 5, only 5 contains the segment b
+                5
+            } else {
+                let f = occurs_n_times(&occurrences.unwrap(), 9).next().unwrap();
+                if digit_display.chars().any(|x| x == f) {
+                    // only 3 contains the segment f
+                    3
+                } else {
+                    2
+                }
+            }
+        }
+        6 => {
+            if occurrences.is_none() {
+                *occurrences = Some(count_segment_occurrences(input));
+            }
+            // e  is the only one that occurs 4 times
+            let e = occurs_n_times(&occurrences.unwrap(), 4).next().unwrap();
+            if !digit_display.chars().any(|x| x == e) {
+                // in 0, 6, 9, only 09 does not contain the segment e
+                9
+            } else {
+                // The digits of one are c and f (in an unknown order
+                let mut c_and_f = input.iter().find(|s| s.len() == 2).unwrap().chars();
+                let c_or_f = c_and_f.next().unwrap();
+                let f_or_c = c_and_f.next().unwrap();
+                if digit_display.chars().any(|x| x == c_or_f)
+                    && digit_display.chars().any(|x| x == f_or_c)
+                {
+                    // 0 contains both digits of one
+                    0
+                } else {
+                    6
+                }
+            }
+        }
+        7 => 8,
         _ => panic!("incorrect display string"),
     }
 }
 
+fn parse_line(line: &Input) -> usize {
+    let mut power_of_10 = 0;
+    let mut n = 0;
+    let  mut occurrences = None;
+    for digit_display in line.output.iter().rev() {
+        let parsed = parse_digit(&line.digits, &digit_display, &mut occurrences);
+        n += parsed as usize * 10_i32.pow(power_of_10) as usize;
+        power_of_10 += 1;
+    }
+    n
+}
+
 #[aoc(day08, part2)]
 fn part2(data: &[Input]) -> usize {
-    data.iter()
-        .map(|line| {
-            let digits_map = map_digits(&line.digits);
-            let mut power_of_10 = 0;
-            let mut n = 0;
-            for mangled_output in line.output.iter().rev() {
-                let demangled_output = mangled_output
-                    .chars()
-                    .map(|c| digits_map[c as usize - 'a' as usize])
-                    .collect::<String>();
-                let parsed = parse_digit(&demangled_output);
-                n += parsed as usize * 10_i32.pow(power_of_10) as usize;
-                power_of_10 += 1;
-            }
-            n
-        })
-        .sum()
+    data.iter().map(parse_line).sum()
 }
 
 #[cfg(test)]
