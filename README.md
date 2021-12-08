@@ -176,12 +176,11 @@ Found 2 outliers among 100 measurements (2.00%)
 ## Day 8
 
 ```
-Day8 - Part1/(default)  time:   [621.66 ns 622.92 ns 624.28 ns]
-Found 4 outliers among 100 measurements (4.00%)
-  1 (1.00%) low severe
+Day8 - Part1/(default)  time:   [1.1012 us 1.1017 us 1.1022 us]
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low mild
   3 (3.00%) high mild
+  2 (2.00%) high severe
 
-Day8 - Part2/(default)  time:   [20.942 us 21.011 us 21.071 us]
-Found 2 outliers among 100 measurements (2.00%)
-  2 (2.00%) high mild
+Day8 - Part2/(default)  time:   [18.148 us 18.204 us 18.262 us]
 ```
