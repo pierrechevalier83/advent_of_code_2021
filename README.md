@@ -184,3 +184,13 @@ Found 6 outliers among 100 measurements (6.00%)
 
 Day8 - Part2/(default)  time:   [18.148 us 18.204 us 18.262 us]
 ```
+
+## Day 9
+
+```
+Day9 - Part1/(default)  time:   [18.162 us 18.178 us 18.205 us]
+Found 4 outliers among 100 measurements (4.00%)
+  4 (4.00%) high severe
+
+Day9 - Part2/(default)  time:   [6.1376 ms 6.1393 ms 6.1407 ms]
+```
