@@ -200,3 +200,14 @@ Found 14 outliers among 100 measurements (14.00%)
   2 (2.00%) high mild
   8 (8.00%) high severe
 ```
+
+## Day 10
+
+```
+Day10 - Part1/(default) time:   [34.503 us 34.527 us 34.549 us]
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+
+Day10 - Part2/(default) time:   [33.861 us 33.897 us 33.938 us]
+```
