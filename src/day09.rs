@@ -38,16 +38,11 @@ fn part1(data: &[Vec<u8>]) -> usize {
         .sum()
 }
 
-fn row_major_index((x,y): (usize, usize), n_cols: usize) -> usize {
-    x * n_cols + y 
+fn row_major_index((x, y): (usize, usize), n_cols: usize) -> usize {
+    x * n_cols + y
 }
 
-
-fn basin_length(
-    point: ((usize, usize), u8),
-    data: &[Vec<u8>],
-    seen: &mut Vec<bool>,
-) -> usize {
+fn basin_length(point: ((usize, usize), u8), data: &[Vec<u8>], seen: &mut Vec<bool>) -> usize {
     let n_cols = data[0].len();
     let (coord, _) = point;
     let mut boundary = vec![coord];
@@ -73,7 +68,9 @@ fn basin_length(
 fn part2(data: &[Vec<u8>]) -> usize {
     let mut heap = find_low_points(data)
         .map(|point| {
-            let mut seen = std::iter::repeat(false).take(data.len() * data[0].len()).collect();
+            let mut seen = std::iter::repeat(false)
+                .take(data.len() * data[0].len())
+                .collect();
             basin_length(point, data, &mut seen)
         })
         .collect::<std::collections::BinaryHeap<_>>();
