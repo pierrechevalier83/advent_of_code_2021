@@ -40,61 +40,130 @@ fn neighbours(index: usize) -> impl Iterator<Item = usize> {
     })
 }
 
-struct Octopi(Vec<u8>);
-
-impl Octopi {
-    fn from_data(data: &[u8]) -> Self {
-        Self(data.to_vec())
+mod grid {
+    use super::neighbours;
+    pub(super) struct Octopi(Vec<u8>);
+    impl Octopi {
+        pub(super) fn from_data(data: &[u8]) -> Self {
+            Self(data.to_vec())
+        }
     }
-}
-
-impl Iterator for Octopi {
-    type Item = usize;
-    fn next(&mut self) -> Option<Self::Item> {
-        for octopus in self.0.iter_mut() {
-            *octopus += 1;
-        }
-        let mut about_to_flash = self
-            .0
-            .iter()
-            .enumerate()
-            .filter_map(|(index, value)| if *value >= 10 { Some(index) } else { None })
-            .collect::<Vec<_>>();
-        let mut have_flashed = bit_set::BitSet::new();
-        while !about_to_flash.is_empty() {
-            about_to_flash = about_to_flash
-                .iter()
-                // Each octopus can flash at most once
-                .filter(|&octopus| have_flashed.insert(*octopus))
-                .flat_map(|octopus| neighbours(*octopus))
-                .filter(|neighbour_index| {
-                    if self.0[*neighbour_index] < 10 {
-                        self.0[*neighbour_index] += 1;
-                    }
-                    self.0[*neighbour_index] >= 10
-                })
-                .collect::<Vec<_>>();
-        }
-
-        for index in &have_flashed {
-            if self.0[index] >= 10 {
-                self.0[index] = 0;
+    impl Iterator for Octopi {
+        type Item = usize;
+        fn next(&mut self) -> Option<Self::Item> {
+            for octopus in self.0.iter_mut() {
+                *octopus += 1;
             }
-        }
+            let mut about_to_flash = self
+                .0
+                .iter()
+                .enumerate()
+                .filter_map(|(index, value)| if *value >= 10 { Some(index) } else { None })
+                .collect::<Vec<_>>();
+            let mut have_flashed = bit_set::BitSet::new();
+            while !about_to_flash.is_empty() {
+                about_to_flash = about_to_flash
+                    .iter()
+                    // Each octopus can flash at most once
+                    .filter(|&octopus| have_flashed.insert(*octopus))
+                    .flat_map(|octopus| neighbours(*octopus))
+                    .filter(|neighbour_index| {
+                        if self.0[*neighbour_index] < 10 {
+                            self.0[*neighbour_index] += 1;
+                        }
+                        self.0[*neighbour_index] >= 10
+                    })
+                    .collect::<Vec<_>>();
+            }
 
-        Some(have_flashed.len())
+            for index in &have_flashed {
+                if self.0[index] >= 10 {
+                    self.0[index] = 0;
+                }
+            }
+            Some(have_flashed.len())
+        }
     }
 }
 
-#[aoc(day11, part1)]
-fn part1(data: &[u8]) -> usize {
-    Octopi::from_data(data).take(100).sum()
+mod buckets {
+    use super::neighbours;
+
+    pub(super) struct Octopi {
+        indices: Vec<bit_set::BitSet>,
+    }
+
+    impl Octopi {
+        pub(super) fn from_data(data: &[u8]) -> Self {
+            let mut indices = std::iter::repeat(bit_set::BitSet::new())
+                .take(11)
+                .collect::<Vec<_>>();
+            for (i, d) in data.iter().enumerate() {
+                indices[*d as usize].insert(i);
+            }
+
+            Self { indices }
+        }
+    }
+
+    impl Iterator for Octopi {
+        type Item = usize;
+        fn next(&mut self) -> Option<Self::Item> {
+            for i in (0..10).rev() {
+                self.indices.swap(i, i + 1);
+            }
+            self.indices[0] = bit_set::BitSet::new();
+            let mut about_to_flash = self.indices[10].clone();
+            let mut already_flashed = bit_set::BitSet::new();
+            while !about_to_flash.is_empty() {
+                already_flashed = about_to_flash.union(&already_flashed).collect();
+                //about_to_flash = about_to_flash
+                about_to_flash
+                    .iter()
+                    // Each octopus can flash at most once
+                    //.filter(|&octopus| have_flashed.insert(octopus))
+                    .flat_map(|octopus| neighbours(octopus))
+                    .for_each(|neighbour_index| {
+                        for val in 0..10 {
+                            if self.indices[val].remove(neighbour_index) {
+                                self.indices[val + 1].insert(neighbour_index);
+                                break;
+                            }
+                        }
+                    });
+                about_to_flash = self.indices[10].difference(&already_flashed).collect();
+            }
+            self.indices.swap(0, 10);
+
+            Some(self.indices[0].len())
+        }
+    }
 }
 
-#[aoc(day11, part2)]
-fn part2(data: &[u8]) -> usize {
+#[aoc(day11, part1, Grid)]
+fn part1_grid(data: &[u8]) -> usize {
+    grid::Octopi::from_data(data).take(100).sum()
+}
+
+#[aoc(day11, part1, Buckets)]
+fn part1_buckets(data: &[u8]) -> usize {
+    buckets::Octopi::from_data(data).take(100).sum()
+}
+
+#[aoc(day11, part2, Grid)]
+fn part2_grid(data: &[u8]) -> usize {
     // We want a one-based result
-    1 + Octopi::from_data(data)
+    1 + grid::Octopi::from_data(data)
+        .enumerate()
+        .find(|(_index, count)| *count == data.len())
+        .unwrap()
+        .0
+}
+
+#[aoc(day11, part2, Buckets)]
+fn part2_buckets(data: &[u8]) -> usize {
+    // We want a one-based result
+    1 + buckets::Octopi::from_data(data)
         .enumerate()
         .find(|(_index, count)| *count == data.len())
         .unwrap()
@@ -122,18 +191,22 @@ mod tests {
     use super::*;
     #[test]
     fn test_part1_given_example_input() {
-        assert_eq!(part1(&example_input()), 1656)
+        assert_eq!(part1_grid(&example_input()), 1656);
+        assert_eq!(part1_buckets(&example_input()), 1656)
     }
     #[test]
     fn test_part1() {
-        assert_eq!(part1(&input()), 1743)
+        assert_eq!(part1_grid(&input()), 1743);
+        assert_eq!(part1_buckets(&input()), 1743)
     }
     #[test]
     fn test_part2_given_example_input() {
-        assert_eq!(part2(&example_input()), 195)
+        assert_eq!(part2_grid(&example_input()), 195);
+        assert_eq!(part2_buckets(&example_input()), 195)
     }
     #[test]
     fn test_part2() {
-        assert_eq!(part2(&input()), 364)
+        assert_eq!(part2_grid(&input()), 364);
+        assert_eq!(part2_buckets(&input()), 364)
     }
 }

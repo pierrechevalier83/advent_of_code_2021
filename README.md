@@ -215,10 +215,21 @@ Day10 - Part2/(default) time:   [33.861 us 33.897 us 33.938 us]
 ## Day 11
 
 ```
-Day11 - Part1/(default) time:   [228.88 us 229.16 us 229.40 us]
+Day11 - Part1/Buckets   time:   [347.69 us 347.96 us 348.25 us]
+Found 3 outliers among 100 measurements (3.00%)
+  3 (3.00%) high mild
+Day11 - Part1/Grid      time:   [235.95 us 236.29 us 236.66 us]
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low mild
+  2 (2.00%) high mild
+  3 (3.00%) high severe
 
-Day11 - Part2/(default) time:   [816.87 us 818.23 us 820.08 us]
-Found 8 outliers among 100 measurements (8.00%)
-  6 (6.00%) high mild
-  2 (2.00%) high severe
+Day11 - Part2/Buckets   time:   [1.1559 ms 1.1572 ms 1.1588 ms]
+Found 2 outliers among 100 measurements (2.00%)
+  1 (1.00%) high mild
+  1 (1.00%) high severe
+Day11 - Part2/Grid      time:   [803.00 us 804.98 us 807.16 us]
+Found 12 outliers among 100 measurements (12.00%)
+  3 (3.00%) low mild
+  9 (9.00%) high severe
 ```
