@@ -211,3 +211,14 @@ Found 2 outliers among 100 measurements (2.00%)
 
 Day10 - Part2/(default) time:   [33.861 us 33.897 us 33.938 us]
 ```
+
+## Day 11
+
+```
+Day11 - Part1/(default) time:   [228.88 us 229.16 us 229.40 us]
+
+Day11 - Part2/(default) time:   [816.87 us 818.23 us 820.08 us]
+Found 8 outliers among 100 measurements (8.00%)
+  6 (6.00%) high mild
+  2 (2.00%) high severe
+```
