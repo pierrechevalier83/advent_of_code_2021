@@ -1,82 +1,107 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use std::collections::HashMap;
+use bit_set::BitSet;
 use std::str::FromStr;
 
 const START: &'static str = "start";
 const END: &'static str = "end";
 
 struct Graph {
-    connections: HashMap<String, Vec<String>>,
+    alphabetical_caves: Vec<String>,
+    connections: Vec<Vec<usize>>,
 }
 
 impl FromStr for Graph {
     type Err = &'static str;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut connections = HashMap::new();
+        let mut alphabetical_caves = s
+            .lines()
+            .flat_map(|line| line.split('-').map(|s| s.to_owned()))
+            .collect::<Vec<_>>();
+        alphabetical_caves.sort();
+        alphabetical_caves.dedup();
+        let mut connections = Vec::new();
+        connections.resize(s.lines().count(), Vec::new());
         for connection in s.lines() {
             let (l, r) = connection.split_once('-').ok_or("Unexpected line")?;
-            connections
-                .entry(l.to_string())
-                .or_insert(vec![])
-                .push(r.to_string());
-            connections
-                .entry(r.to_string())
-                .or_insert(vec![])
-                .push(l.to_string());
+            let l_index = alphabetical_caves.binary_search(&l.to_string()).unwrap();
+            let r_index = alphabetical_caves.binary_search(&r.to_string()).unwrap();
+            connections[l_index].push(r_index);
+            connections[r_index].push(l_index);
         }
-        Ok(Self { connections })
+        Ok(Self {
+            alphabetical_caves,
+            connections,
+        })
     }
 }
 
-fn is_large(cave: &str) -> bool {
-    cave.chars().next().unwrap().is_uppercase()
-}
-fn is_edge_node(cave: &str) -> bool {
-    cave == START || cave == END
-}
-fn is_small(cave: &str) -> bool {
-    !is_large(cave) && !is_edge_node(cave)
-}
-
 impl Graph {
+    fn is_large(&self, cave: usize) -> bool {
+        self.alphabetical_caves[cave]
+            .chars()
+            .next()
+            .unwrap()
+            .is_uppercase()
+    }
+    fn is_edge_node(&self, cave: usize) -> bool {
+        self.alphabetical_caves[cave] == START || self.alphabetical_caves[cave] == END
+    }
+    fn is_small(&self, cave: usize) -> bool {
+        !self.is_large(cave) && !self.is_edge_node(cave)
+    }
+
     /// all_paths: a Map from a node to all nodes one closer to destination
-    fn all_paths_to_end<'a>(
+    fn count_paths_to_end<'a>(
         &'a self,
-        start: &'a str,
-        path: &mut Vec<&'a str>,
+        start: usize,
+        end: usize,
+        path: &mut BitSet,
         can_visit_one_small_cave_twice: bool,
-    ) -> Vec<Vec<&'a str>> {
-        path.push(start);
-        if start == END {
-            vec![path.clone()]
+    ) -> usize {
+        path.insert(start);
+        if start == end {
+            1
         } else {
             self.connections[start]
                 .iter()
-                .flat_map(|cave| {
+                .map(|cave| {
                     let mut seen_twice = false;
-                    if is_large(cave)
-                        || !path.contains(&cave.as_str())
-                        || can_visit_one_small_cave_twice && is_small(cave) && {
+                    if self.is_large(*cave)
+                        || !path.contains(*cave)
+                        || can_visit_one_small_cave_twice && self.is_small(*cave) && {
                             seen_twice = true;
                             true
                         }
                     {
-                        self.all_paths_to_end(
-                            cave,
+                        self.count_paths_to_end(
+                            *cave,
+                            end,
                             &mut path.clone(),
                             can_visit_one_small_cave_twice && !seen_twice,
                         )
                     } else {
-                        vec![]
+                        0
                     }
                 })
-                .collect::<Vec<_>>()
+                .sum()
         }
     }
     fn num_paths_to_end(&self, can_visit_one_small_cave_twice: bool) -> usize {
-        let mut path = vec![];
-        let all = self.all_paths_to_end(START, &mut path, can_visit_one_small_cave_twice);
-        all.len()
+        let mut path = BitSet::new();
+        let start_index = self
+            .alphabetical_caves
+            .binary_search(&START.to_string())
+            .unwrap();
+        let end_index = self
+            .alphabetical_caves
+            .binary_search(&END.to_string())
+            .unwrap();
+        self.count_paths_to_end(
+            start_index,
+            end_index,
+            &mut path,
+            can_visit_one_small_cave_twice,
+        )
     }
 }
 
