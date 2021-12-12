@@ -1,5 +1,4 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use bit_set::BitSet;
 use std::str::FromStr;
 
 const START: &'static str = "start";
@@ -10,6 +9,7 @@ struct Graph {
     start: usize,
     end: usize,
     first_lowercase: usize,
+    n_caves: usize,
 }
 
 impl FromStr for Graph {
@@ -29,6 +29,7 @@ impl FromStr for Graph {
             .iter()
             .position(|s| s.chars().next().unwrap().is_lowercase())
             .unwrap();
+        let n_caves = alphabetical_caves.len();
         let mut connections = Vec::new();
         connections.resize(s.lines().count(), Vec::new());
         for connection in s.lines() {
@@ -43,6 +44,7 @@ impl FromStr for Graph {
             start,
             end,
             first_lowercase,
+            n_caves,
         })
     }
 }
@@ -62,10 +64,10 @@ impl Graph {
     fn count_paths_to_end<'a>(
         &'a self,
         start: usize,
-        path: &mut BitSet,
+        path: &mut Vec<bool>,
         can_visit_one_small_cave_twice: bool,
     ) -> usize {
-        path.insert(start);
+        path[start] = true;
         if start == self.end {
             1
         } else {
@@ -74,7 +76,7 @@ impl Graph {
                 .map(|cave| {
                     let mut seen_twice = false;
                     if self.is_large(*cave)
-                        || !path.contains(*cave)
+                        || !path[*cave]
                         || can_visit_one_small_cave_twice && self.is_small(*cave) && {
                             seen_twice = true;
                             true
@@ -93,7 +95,8 @@ impl Graph {
         }
     }
     fn num_paths_to_end(&self, can_visit_one_small_cave_twice: bool) -> usize {
-        let mut path = BitSet::new();
+        let mut path = Vec::new();
+        path.resize(self.n_caves, false);
         self.count_paths_to_end(self.start, &mut path, can_visit_one_small_cave_twice)
     }
 }
