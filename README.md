@@ -237,12 +237,13 @@ Found 12 outliers among 100 measurements (12.00%)
 ## Day 12
 
 ```
-Day12 - Part1/(default) time:   [456.86 us 458.35 us 461.41 us]
-Found 4 outliers among 100 measurements (4.00%)
-  2 (2.00%) high mild
+Day12 - Part1/(default) time:   [332.06 us 333.12 us 334.33 us]
+Found 9 outliers among 100 measurements (9.00%)
+  7 (7.00%) high mild
   2 (2.00%) high severe
 
-Day12 - Part2/(default) time:   [13.095 ms 13.101 ms 13.109 ms]
-Found 2 outliers among 100 measurements (2.00%)
-  2 (2.00%) high mild
+Day12 - Part2/(default) time:   [9.3812 ms 9.3870 ms 9.3938 ms]
+Found 7 outliers among 100 measurements (7.00%)
+  4 (4.00%) high mild
+  3 (3.00%) high severe
   ```

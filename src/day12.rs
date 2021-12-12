@@ -6,8 +6,10 @@ const START: &'static str = "start";
 const END: &'static str = "end";
 
 struct Graph {
-    alphabetical_caves: Vec<String>,
     connections: Vec<Vec<usize>>,
+    start: usize,
+    end: usize,
+    first_lowercase: usize,
 }
 
 impl FromStr for Graph {
@@ -19,6 +21,14 @@ impl FromStr for Graph {
             .collect::<Vec<_>>();
         alphabetical_caves.sort();
         alphabetical_caves.dedup();
+        let start = alphabetical_caves
+            .binary_search(&START.to_string())
+            .unwrap();
+        let end = alphabetical_caves.binary_search(&END.to_string()).unwrap();
+        let first_lowercase = alphabetical_caves
+            .iter()
+            .position(|s| s.chars().next().unwrap().is_lowercase())
+            .unwrap();
         let mut connections = Vec::new();
         connections.resize(s.lines().count(), Vec::new());
         for connection in s.lines() {
@@ -29,22 +39,20 @@ impl FromStr for Graph {
             connections[r_index].push(l_index);
         }
         Ok(Self {
-            alphabetical_caves,
             connections,
+            start,
+            end,
+            first_lowercase,
         })
     }
 }
 
 impl Graph {
     fn is_large(&self, cave: usize) -> bool {
-        self.alphabetical_caves[cave]
-            .chars()
-            .next()
-            .unwrap()
-            .is_uppercase()
+        cave < self.first_lowercase
     }
     fn is_edge_node(&self, cave: usize) -> bool {
-        self.alphabetical_caves[cave] == START || self.alphabetical_caves[cave] == END
+        cave == self.start || cave == self.end
     }
     fn is_small(&self, cave: usize) -> bool {
         !self.is_large(cave) && !self.is_edge_node(cave)
@@ -54,12 +62,11 @@ impl Graph {
     fn count_paths_to_end<'a>(
         &'a self,
         start: usize,
-        end: usize,
         path: &mut BitSet,
         can_visit_one_small_cave_twice: bool,
     ) -> usize {
         path.insert(start);
-        if start == end {
+        if start == self.end {
             1
         } else {
             self.connections[start]
@@ -75,7 +82,6 @@ impl Graph {
                     {
                         self.count_paths_to_end(
                             *cave,
-                            end,
                             &mut path.clone(),
                             can_visit_one_small_cave_twice && !seen_twice,
                         )
@@ -88,20 +94,7 @@ impl Graph {
     }
     fn num_paths_to_end(&self, can_visit_one_small_cave_twice: bool) -> usize {
         let mut path = BitSet::new();
-        let start_index = self
-            .alphabetical_caves
-            .binary_search(&START.to_string())
-            .unwrap();
-        let end_index = self
-            .alphabetical_caves
-            .binary_search(&END.to_string())
-            .unwrap();
-        self.count_paths_to_end(
-            start_index,
-            end_index,
-            &mut path,
-            can_visit_one_small_cave_twice,
-        )
+        self.count_paths_to_end(self.start, &mut path, can_visit_one_small_cave_twice)
     }
 }
 
