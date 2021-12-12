@@ -82,11 +82,14 @@ impl Graph {
                             true
                         }
                     {
-                        self.count_paths_to_end(
+                        let prev_path = path[*cave];
+                        let count = self.count_paths_to_end(
                             *cave,
-                            &mut path.clone(),
+                            path,
                             can_visit_one_small_cave_twice && !seen_twice,
-                        )
+                        );
+                        path[*cave] = prev_path;
+                        count
                     } else {
                         0
                     }
