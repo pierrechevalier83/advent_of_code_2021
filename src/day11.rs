@@ -122,7 +122,7 @@ mod buckets {
                     .iter()
                     // Each octopus can flash at most once
                     //.filter(|&octopus| have_flashed.insert(octopus))
-                    .flat_map(|octopus| neighbours(octopus))
+                    .flat_map(neighbours)
                     .for_each(|neighbour_index| {
                         for val in 0..10 {
                             if self.indices[val].remove(neighbour_index) {

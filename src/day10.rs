@@ -51,7 +51,7 @@ fn check_syntax(data: &[String]) -> impl Iterator<Item = SyntaxError> + '_ {
                 '(' | '[' | '{' | '<' => stack.push(c),
                 close => {
                     let open = stack.pop();
-                    let expected = open.map(|o| matching_closing_brace(o));
+                    let expected = open.map(matching_closing_brace);
                     let got = close;
                     if expected != Some(got) {
                         return Some(SyntaxError::Corrupted(got));
@@ -69,10 +69,7 @@ fn check_syntax(data: &[String]) -> impl Iterator<Item = SyntaxError> + '_ {
 #[aoc(day10, part1)]
 fn part1(data: &[String]) -> usize {
     check_syntax(data)
-        .filter(|e| match e {
-            SyntaxError::Corrupted(_) => true,
-            _ => false,
-        })
+        .filter(|e| matches!(e, SyntaxError::Corrupted(_)))
         .map(error_score)
         .sum()
 }
@@ -80,10 +77,7 @@ fn part1(data: &[String]) -> usize {
 #[aoc(day10, part2)]
 fn part2(data: &[String]) -> usize {
     let mut completion_scores = check_syntax(data)
-        .filter(|e| match e {
-            SyntaxError::Incomplete(_) => true,
-            _ => false,
-        })
+        .filter(|e| matches!(e, SyntaxError::Incomplete(_)))
         .map(error_score)
         .collect::<Vec<_>>();
     completion_scores.sort_unstable();

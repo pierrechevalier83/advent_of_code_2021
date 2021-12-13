@@ -120,7 +120,7 @@ fn fold_point(pos: usize, dot_coordinate: &mut usize) {
 impl Iterator for FoldIterator {
     type Item = InstructionsSheet;
     fn next(&mut self) -> Option<Self::Item> {
-        if self.fold_index <= self.instructions.folds.len() - 1 {
+        if self.fold_index < self.instructions.folds.len() {
             let next_fold = self.instructions.folds[self.fold_index];
             for dot in self.instructions.dots.iter_mut() {
                 // fold point

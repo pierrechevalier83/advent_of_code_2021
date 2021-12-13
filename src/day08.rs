@@ -41,7 +41,7 @@ fn parse_input(data: &str) -> Vec<Input> {
         .map(|line| {
             let mut it = line.split(" | ").map(|segment| {
                 segment
-                    .split(" ")
+                    .split(' ')
                     .map(DigitDisplay::from_str)
                     .collect::<Result<Vec<_>, _>>()
                     .unwrap()
@@ -196,13 +196,11 @@ fn parse_digit(
 }
 
 fn parse_line(line: &Input) -> usize {
-    let mut power_of_10 = 0;
     let mut n = 0;
     let mut occurrences = None;
-    for digit_display in line.output.iter().rev() {
-        let parsed = parse_digit(&line.digits, &digit_display, &mut occurrences);
-        n += parsed as usize * 10_i32.pow(power_of_10) as usize;
-        power_of_10 += 1;
+    for (power_of_10, digit_display) in line.output.iter().rev().enumerate() {
+        let parsed = parse_digit(&line.digits, digit_display, &mut occurrences);
+        n += parsed as usize * 10_i32.pow(power_of_10 as u32) as usize;
     }
     n
 }

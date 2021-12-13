@@ -1,8 +1,8 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 use std::str::FromStr;
 
-const START: &'static str = "start";
-const END: &'static str = "end";
+const START: &str = "start";
+const END: &str = "end";
 
 struct Graph {
     connections: Vec<Vec<usize>>,
@@ -61,8 +61,8 @@ impl Graph {
     }
 
     /// all_paths: a Map from a node to all nodes one closer to destination
-    fn count_paths_to_end<'a>(
-        &'a self,
+    fn count_paths_to_end(
+        &'_ self,
         start: usize,
         path: &mut Vec<bool>,
         can_visit_one_small_cave_twice: bool,
