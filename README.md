@@ -262,10 +262,12 @@ Found 8 outliers among 100 measurements (8.00%)
 ## Day 14
 
 ```
-Day14 - Part1/(default) time:   [3.0729 us 3.0771 us 3.0811 us]
+Day14 - Part1/(default) time:   [2.5670 us 2.5713 us 2.5755 us]
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high mild
 
-Day14 - Part2/(default) time:   [12.325 us 12.334 us 12.342 us]
+Day14 - Part2/(default) time:   [10.650 us 10.680 us 10.729 us]
 Found 5 outliers among 100 measurements (5.00%)
-  2 (2.00%) low mild
-  3 (3.00%) high mild
+  2 (2.00%) high mild
+  3 (3.00%) high severe
 ```

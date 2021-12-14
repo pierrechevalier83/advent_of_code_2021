@@ -5,50 +5,86 @@ const ALPHABET_SIZE: usize = 26;
 const N_LETTER_PAIRS: usize = ALPHABET_SIZE * ALPHABET_SIZE;
 
 #[derive(Clone)]
+struct Alphabet {
+    // Letters contained in our alphabet
+    letters: Vec<char>,
+    letter_indices: [usize; ALPHABET_SIZE],
+}
+impl Alphabet {
+    fn uppercase_index(c: char) -> usize {
+        c as usize - 'A' as usize
+    }
+    fn index(&self, c: char) -> usize {
+        self.letter_indices[Self::uppercase_index(c)]
+    }
+    fn pair_index(&self, l: char, r: char) -> usize {
+        self.index(l) + self.letters.len() * self.index(r)
+    }
+}
+
+impl FromStr for Alphabet {
+    type Err = &'static str;
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let mut letters = s
+            .chars()
+            .filter(|&c| char::is_alphabetic(c))
+            .collect::<Vec<_>>();
+        letters.sort_unstable();
+        letters.dedup();
+        let mut letter_indices = [0; ALPHABET_SIZE];
+        for (i, c) in letters.iter().enumerate() {
+            letter_indices[Self::uppercase_index(*c)] = i;
+        }
+
+        Ok(Self {
+            letters,
+            letter_indices,
+        })
+    }
+}
+
+#[derive(Clone)]
 struct Polymerization {
-    polymer_letters: [usize; ALPHABET_SIZE],
-    polymer: [usize; N_LETTER_PAIRS],
-    insertion_rules: [Option<char>; N_LETTER_PAIRS],
-    alphabet: Vec<char>,
-}
-
-fn uppercase_index(c: char) -> usize {
-    c as usize - 'A' as usize
-}
-
-fn pair_index(l: char, r: char) -> usize {
-    uppercase_index(l) + ALPHABET_SIZE * uppercase_index(r)
+    alphabet: Alphabet,
+    polymer_letters: Vec<usize>,
+    polymer: Vec<usize>,
+    insertion_rules: Vec<Option<char>>,
 }
 
 impl FromStr for Polymerization {
     type Err = &'static str;
     fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let alphabet: Alphabet = s.parse()?;
         let mut lines = s.lines();
         let polymer_chars = lines.next().unwrap().chars().collect::<Vec<_>>();
-        let mut polymer_letters = [0; ALPHABET_SIZE];
+        let mut polymer_letters = std::iter::repeat(0)
+            .take(alphabet.letters.len())
+            .collect::<Vec<_>>();
         for c in &polymer_chars {
-            polymer_letters[uppercase_index(*c)] += 1;
+            polymer_letters[alphabet.index(*c)] += 1;
         }
-        let mut polymer = [0; N_LETTER_PAIRS];
+        let mut polymer = std::iter::repeat(0)
+            .take(alphabet.letters.len().pow(2))
+            .collect::<Vec<_>>();
         for window in polymer_chars.windows(2) {
-            polymer[pair_index(window[0], window[1])] += 1;
+            polymer[alphabet.pair_index(window[0], window[1])] += 1;
         }
         lines.next();
-        let mut insertion_rules = [None; N_LETTER_PAIRS];
+        let mut insertion_rules = std::iter::repeat(None)
+            .take(alphabet.letters.len().pow(2))
+            .collect::<Vec<_>>();
         lines.for_each(|line| {
             let (pair, to_insert) = line.split_once(" -> ").unwrap();
             let mut pair = pair.chars();
-            insertion_rules[pair_index(pair.next().unwrap(), pair.next().unwrap())] =
+            insertion_rules[alphabet.pair_index(pair.next().unwrap(), pair.next().unwrap())] =
                 Some(to_insert.chars().next().unwrap());
         });
-        let mut alphabet = s.chars().filter(|&c| char::is_alphabetic(c)).collect::<Vec<_>>();
-        alphabet.sort_unstable();
-        alphabet.dedup();
-        Ok(Polymerization {
+
+        Ok(Self {
+            alphabet,
             polymer_letters,
             polymer,
             insertion_rules,
-            alphabet
         })
     }
 }
@@ -57,21 +93,24 @@ impl Iterator for Polymerization {
     type Item = ();
     fn next(&mut self) -> Option<Self::Item> {
         let mut polymer = [0; N_LETTER_PAIRS];
-        for &first in &self.alphabet {
-            for &second in &self.alphabet {
-                let n_pairs = self.polymer[pair_index(first, second)];
+        for &first in &self.alphabet.letters {
+            for &second in &self.alphabet.letters {
+                let n_pairs = self.polymer[self.alphabet.pair_index(first, second)];
                 if n_pairs > 0 {
-                    if let Some(middle) = self.insertion_rules[pair_index(first, second)] {
-                        polymer[pair_index(first, middle)] += n_pairs;
-                        polymer[pair_index(middle, second)] += n_pairs;
-                        self.polymer_letters[uppercase_index(middle)] += n_pairs;
+                    if let Some(middle) =
+                        self.insertion_rules[self.alphabet.pair_index(first, second)]
+                    {
+                        polymer[self.alphabet.pair_index(first, middle)] += n_pairs;
+                        polymer[self.alphabet.pair_index(middle, second)] += n_pairs;
+                        self.polymer_letters[self.alphabet.index(middle)] += n_pairs;
                     } else {
-                        polymer[pair_index(first, second)] += n_pairs;
+                        polymer[self.alphabet.pair_index(first, second)] += n_pairs;
                     }
                 }
             }
         }
-        self.polymer = polymer.clone();
+        let len = self.polymer.len();
+        let _ = std::mem::replace(&mut self.polymer, polymer[..len].to_vec());
         Some(())
     }
 }
