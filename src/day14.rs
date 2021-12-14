@@ -9,6 +9,7 @@ struct Polymerization {
     polymer_letters: [usize; ALPHABET_SIZE],
     polymer: [usize; N_LETTER_PAIRS],
     insertion_rules: [Option<char>; N_LETTER_PAIRS],
+    alphabet: Vec<char>,
 }
 
 fn uppercase_index(c: char) -> usize {
@@ -40,10 +41,14 @@ impl FromStr for Polymerization {
             insertion_rules[pair_index(pair.next().unwrap(), pair.next().unwrap())] =
                 Some(to_insert.chars().next().unwrap());
         });
+        let mut alphabet = s.chars().filter(|&c| char::is_alphabetic(c)).collect::<Vec<_>>();
+        alphabet.sort_unstable();
+        alphabet.dedup();
         Ok(Polymerization {
             polymer_letters,
             polymer,
             insertion_rules,
+            alphabet
         })
     }
 }
@@ -52,8 +57,8 @@ impl Iterator for Polymerization {
     type Item = ();
     fn next(&mut self) -> Option<Self::Item> {
         let mut polymer = [0; N_LETTER_PAIRS];
-        for first in 'A'..'Z' {
-            for second in 'A'..'Z' {
+        for &first in &self.alphabet {
+            for &second in &self.alphabet {
                 let n_pairs = self.polymer[pair_index(first, second)];
                 if n_pairs > 0 {
                     if let Some(middle) = self.insertion_rules[pair_index(first, second)] {
