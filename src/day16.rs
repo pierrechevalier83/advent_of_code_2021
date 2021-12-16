@@ -1,8 +1,7 @@
 use aoc_runner_derive::{aoc, aoc_generator};
 
 fn to_bits(n: usize, i: u32) -> Vec<bool> {
-    let v = (0..n).map(|index| ((i >> index) & 1) == 1).rev().collect();
-    v
+    (0..n).map(|index| ((i >> index) & 1) == 1).rev().collect()
 }
 
 fn from_bits(bits: &[bool]) -> u64 {
