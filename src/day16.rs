@@ -32,16 +32,34 @@ impl Version {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+enum OperatorId {
+    Sum,
+    Product,
+    Min,
+    Max,
+    GreaterThan,
+    LessThan,
+    EqualTo,
+}
+
+#[derive(Debug, Eq, PartialEq)]
 enum TypeId {
     LiteralValue,
-    Operator,
+    Operator(OperatorId),
 }
 
 impl TypeId {
     fn from_bits(bits: &[bool]) -> Self {
         match from_bits(bits) {
+            0 => Self::Operator(OperatorId::Sum),
+            1 => Self::Operator(OperatorId::Product),
+            2 => Self::Operator(OperatorId::Min),
+            3 => Self::Operator(OperatorId::Max),
             4 => Self::LiteralValue,
-            _ => Self::Operator,
+            5 => Self::Operator(OperatorId::GreaterThan),
+            6 => Self::Operator(OperatorId::LessThan),
+            7 => Self::Operator(OperatorId::EqualTo),
+            _ => panic!("invalid operator"),
         }
     }
 }
@@ -62,9 +80,48 @@ impl LengthTypeId {
 }
 
 #[derive(Debug, Eq, PartialEq)]
+struct Operator {
+    id: OperatorId,
+    packets: Vec<Packet>,
+}
+
+impl Operator {
+    fn calculate(&self) -> u64 {
+        let mut values = self.packets.iter().map(|p| p.calculate());
+        match self.id {
+            OperatorId::Sum => values.sum(),
+            OperatorId::Product => values.product(),
+            OperatorId::Min => values.min().unwrap_or(0),
+            OperatorId::Max => values.max().unwrap_or(0),
+            OperatorId::GreaterThan => {
+                if values.next() > values.next() {
+                    1
+                } else {
+                    0
+                }
+            }
+            OperatorId::LessThan => {
+                if values.next() < values.next() {
+                    1
+                } else {
+                    0
+                }
+            }
+            OperatorId::EqualTo => {
+                if values.next() == values.next() {
+                    1
+                } else {
+                    0
+                }
+            }
+        }
+    }
+}
+
+#[derive(Debug, Eq, PartialEq)]
 enum Payload {
     LiteralValue(u64),
-    Operator(Vec<Packet>),
+    Operator(Operator),
 }
 
 impl Payload {
@@ -83,7 +140,7 @@ impl Payload {
                 index += 5;
                 (Self::LiteralValue(from_bits(&value_bits)), index)
             }
-            TypeId::Operator => {
+            TypeId::Operator(op_id) => {
                 let length_type_id = LengthTypeId::from_bit(bits[index]);
                 index += 1;
                 let mut subpackets = Vec::new();
@@ -108,7 +165,13 @@ impl Payload {
                         }
                     }
                 }
-                (Self::Operator(subpackets), index)
+                (
+                    Self::Operator(Operator {
+                        id: op_id,
+                        packets: subpackets,
+                    }),
+                    index,
+                )
             }
         }
     }
@@ -127,25 +190,30 @@ impl Packet {
         (Self { version, payload }, 3 + index)
     }
     fn version_sum(&self) -> usize {
-
-        let sum = self.version.0 as usize + match &self.payload {
-            Payload::LiteralValue(_) => 0,
-            Payload::Operator(packets) => packets.iter().map(|p| p.version_sum()).sum()
-        };
-        sum
+        self.version.0 as usize
+            + match &self.payload {
+                Payload::LiteralValue(_) => 0,
+                Payload::Operator(op) => op.packets.iter().map(|p| p.version_sum()).sum(),
+            }
+    }
+    fn calculate(&self) -> u64 {
+        match &self.payload {
+            Payload::LiteralValue(x) => *x,
+            Payload::Operator(op) => op.calculate(),
+        }
     }
 }
 
 #[aoc(day16, part1)]
 fn part1(data: &[bool]) -> usize {
     let (packet, _) = Packet::from_bits(data);
-    //println!("{:#?}", packet);
     packet.version_sum()
 }
 
 #[aoc(day16, part2)]
-fn part2(data: &[bool]) -> usize {
-    42
+fn part2(data: &[bool]) -> u64 {
+    let (packet, _) = Packet::from_bits(data);
+    packet.calculate()
 }
 
 #[cfg(test)]
@@ -173,16 +241,19 @@ mod tests {
             (
                 Packet {
                     version: Version(1),
-                    payload: Payload::Operator(vec![
-                        Packet {
-                            version: Version(6),
-                            payload: Payload::LiteralValue(10)
-                        },
-                        Packet {
-                            version: Version(2),
-                            payload: Payload::LiteralValue(20)
-                        },
-                    ])
+                    payload: Payload::Operator(Operator {
+                        id: OperatorId::LessThan,
+                        packets: vec![
+                            Packet {
+                                version: Version(6),
+                                payload: Payload::LiteralValue(10)
+                            },
+                            Packet {
+                                version: Version(2),
+                                payload: Payload::LiteralValue(20)
+                            },
+                        ]
+                    })
                 },
                 49
             ),
@@ -195,20 +266,23 @@ mod tests {
             (
                 Packet {
                     version: Version(7),
-                    payload: Payload::Operator(vec![
-                        Packet {
-                            version: Version(2),
-                            payload: Payload::LiteralValue(1)
-                        },
-                        Packet {
-                            version: Version(4),
-                            payload: Payload::LiteralValue(2)
-                        },
-                        Packet {
-                            version: Version(1),
-                            payload: Payload::LiteralValue(3)
-                        },
-                    ])
+                    payload: Payload::Operator(Operator {
+                        id: OperatorId::Max,
+                        packets: vec![
+                            Packet {
+                                version: Version(2),
+                                payload: Payload::LiteralValue(1)
+                            },
+                            Packet {
+                                version: Version(4),
+                                payload: Payload::LiteralValue(2)
+                            },
+                            Packet {
+                                version: Version(1),
+                                payload: Payload::LiteralValue(3)
+                            },
+                        ]
+                    })
                 },
                 51
             ),
@@ -226,14 +300,19 @@ mod tests {
     fn test_part1() {
         assert_eq!(part1(&input()), 1014)
     }
-    /*
     #[test]
     fn test_part2_given_example_input() {
-        assert_eq!(part2(&example_input()), 0)
+        assert_eq!(part2(&parse_input("C200B40A82")), 3);
+        assert_eq!(part2(&parse_input("04005AC33890")), 54);
+        assert_eq!(part2(&parse_input("880086C3E88112")), 7);
+        assert_eq!(part2(&parse_input("CE00C43D881120")), 9);
+        assert_eq!(part2(&parse_input("D8005AC2A8F0")), 1);
+        assert_eq!(part2(&parse_input("F600BC2D8F")), 0);
+        assert_eq!(part2(&parse_input("9C005AC2F8F0")), 0);
+        assert_eq!(part2(&parse_input("9C0141080250320F1802104A08")), 1)
     }
     #[test]
     fn test_part2() {
-        assert_eq!(part2(&input()), 0)
+        assert_eq!(part2(&input()), 1922490999789)
     }
-    */
 }

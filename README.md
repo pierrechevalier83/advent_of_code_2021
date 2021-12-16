@@ -284,3 +284,15 @@ Day 15 - Part 2 : 2876
 	runner: 233.76458ms
 
 ```
+
+## Day 16
+
+```
+Day16 - Part1/(default) time:   [17.425 us 17.434 us 17.443 us]
+Found 6 outliers among 100 measurements (6.00%)
+  1 (1.00%) low mild
+  4 (4.00%) high mild
+  1 (1.00%) high severe
+
+Day16 - Part2/(default) time:   [18.828 us 18.839 us 18.850 us]
+```
