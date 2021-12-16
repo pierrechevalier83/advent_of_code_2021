@@ -1,4 +1,5 @@
 use aoc_runner_derive::{aoc, aoc_generator};
+use drawille;
 use std::str::FromStr;
 
 #[derive(Debug, Clone, Eq, PartialEq, Ord, PartialOrd)]
@@ -75,24 +76,16 @@ impl std::fmt::Display for InstructionsSheet {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> std::fmt::Result {
         let n_cols = self.dots.iter().map(|dot| dot.x).max().unwrap() + 1;
         let n_rows = self.dots.iter().map(|dot| dot.y).max().unwrap() + 1;
-
-        write!(
-            f,
-            "{}",
-            (0..n_rows)
-                .flat_map(|y| {
-                    (0..n_cols)
-                        .map(move |x| {
-                            if self.dots.contains(&Point { x, y }) {
-                                '█'
-                            } else {
-                                ' '
-                            }
-                        })
-                        .chain(std::iter::once('\n'))
-                })
-                .collect::<String>()
-        )
+        let x_offset = 15;
+        let mut canvas = drawille::Canvas::new(n_cols as u32 + x_offset, n_rows as u32);
+        (0..n_rows).for_each(|y| {
+            (0..n_cols).for_each(|x| {
+                if self.dots.contains(&Point { x, y }) {
+                    canvas.set(x_offset + x as u32, y as u32);
+                }
+            })
+        });
+        write!(f, "{}", canvas.frame())
     }
 }
 
@@ -197,24 +190,15 @@ fold along x=5";
     #[test]
     fn test_part2_given_example_input() {
         let output = "
-█████
-█   █
-█   █
-█   █
-█████
-";
+       ⢸⠉⢹ 
+       ⠈⠉⠉ ";
         assert_eq!(&part2(&example_input()), output)
     }
     #[test]
     fn test_part2() {
         let output = "
-█  █ █    ███  █  █ ███   ██  ████ ███ 
-█  █ █    █  █ █  █ █  █ █  █ █    █  █
-████ █    ███  █  █ ███  █    ███  █  █
-█  █ █    █  █ █  █ █  █ █ ██ █    ███ 
-█  █ █    █  █ █  █ █  █ █  █ █    █ █ 
-█  █ ████ ███   ██  ███   ███ █    █  █
-";
+       ⢸⠤⡇⡇ ⢸⠭⡂⡇⢸⢸⠭⡂⡎⣑⢸⠭⠁⣏⡱ 
+       ⠘ ⠃⠓⠒⠘⠒⠁⠑⠊⠘⠒⠁⠑⠚⠘  ⠃⠑ ";
         assert_eq!(&part2(&input()), output)
     }
 }
