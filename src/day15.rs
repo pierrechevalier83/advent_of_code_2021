@@ -99,7 +99,9 @@ impl Matrix {
                 let res = self.digits[e.target().index()];
                 res
             },
-            |node| (node.index() / self.n_cols as usize + node.index() % self.n_cols  as usize) as u32,
+            |node| {
+                (node.index() / self.n_cols as usize + node.index() % self.n_cols as usize) as u32
+            },
         )
         .unwrap()
         .0
