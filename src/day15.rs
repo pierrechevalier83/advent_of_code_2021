@@ -1,9 +1,9 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use petgraph::{algo::astar, graph::Graph, graph::NodeIndex, visit::EdgeRef, Directed};
+use pathfinding::directed::dijkstra::dijkstra;
 use std::str::FromStr;
 
 struct Matrix {
-    digits: Vec<u32>,
+    digits: Vec<u8>,
     n_cols: usize,
 }
 
@@ -13,64 +13,22 @@ impl FromStr for Matrix {
         let n_cols = s
             .lines()
             .next()
-            .ok_or("Expected non emptu first line!")?
+            .ok_or("Expected non empty first line!")?
             .chars()
             .count();
         let digits = s
             .chars()
             .filter(|c| !c.is_ascii_whitespace())
-            .map(|c| c.to_digit(10).unwrap())
+            .map(|c| c.to_digit(10).unwrap() as u8)
             .collect();
         Ok(Self { n_cols, digits })
     }
 }
 
 impl Matrix {
-    fn as_pet_graph(&self) -> Graph<(), (), Directed, usize> {
-        let mut edges = self
-            .digits
-            .chunks(self.n_cols)
-            .enumerate()
-            .flat_map(move |(i, row)| {
-                row.iter().enumerate().flat_map(move |(j, _x)| {
-                    let index = i * self.n_cols + j;
-                    let left = if j > 1 {
-                        Some((index, index - 1))
-                    } else {
-                        None
-                    };
-                    let right = if j < self.n_cols - 1 {
-                        Some((index, index + 1))
-                    } else {
-                        None
-                    };
-                    let up = if index > self.n_cols {
-                        Some((index, index - self.n_cols))
-                    } else {
-                        None
-                    };
-                    let down = if index >= self.digits.len() - self.n_cols {
-                        None
-                    } else {
-                        Some((index, index + self.n_cols))
-                    };
-                    left.into_iter()
-                        .chain(
-                            right
-                                .into_iter()
-                                .chain(up.into_iter().chain(down.into_iter())),
-                        )
-                        .collect::<Vec<_>>()
-                })
-            })
-            .collect::<Vec<_>>();
-        edges.sort_unstable();
-        edges.dedup();
-        Graph::from_edges(&edges)
-    }
-    fn tile_one_dimension<'a>(vec: &mut Vec<u32>, n: usize, pattern: &[u32]) {
+    fn tile_one_dimension(vec: &mut Vec<u8>, n: usize, pattern: &[u8]) {
         for i in 0..n {
-            vec.extend(pattern.iter().map(|&x| 1 + (x + i as u32 - 1) % 9));
+            vec.extend(pattern.iter().map(|&x| 1 + (x + i as u8 - 1) % 9));
         }
     }
     fn tile(&self, n: usize) -> Self {
@@ -88,113 +46,43 @@ impl Matrix {
         }
     }
     fn shortest_path(&self) -> u32 {
-        let g = self.as_pet_graph();
-        let start = NodeIndex::new(0);
-        let f = NodeIndex::new(g.node_count() - 1);
-        astar(
-            &g,
-            start,
-            |finish| finish == f,
-            |e| {
-                let res = self.digits[e.target().index()];
-                res
-            },
-            |node| {
-                (node.index() / self.n_cols as usize + node.index() % self.n_cols as usize) as u32
-            },
-        )
-        .unwrap()
-        .0
-        // Dynamic programming:
-        //
-        // Scanning from the back, row by row,
-        // fill the shortest path to get to this point.
-        // It is the minimum of the total to the right and the total to the bottom.
-        // O(n) time,
-        // O(n_cols) extra space
-        /*
-        let mut down_row = self
-            .digits
-            .iter()
-            .rev()
-            .take(self.n_cols)
-            .copied()
-            .collect::<Vec<_>>();
-        let mut right_value = None;
-        let mut shortest_costs_going_only_right_and_left = self
-            .digits
-            .iter()
-            .rev()
-            .enumerate()
-            .map(|(index, &digit)| {
-                if index % self.n_cols == 0 {
-                    // No right neighbour
-                    right_value = None;
+        let start = 0;
+        let successors = |&index: &usize| {
+            if index % self.n_cols != 0 {
+                self.digits
+                    .get(index - 1)
+                    .map(|cost| (index - 1, *cost as u32))
+            } else {
+                None
+            }
+            .into_iter()
+            .chain(
+                if index % self.n_cols != self.n_cols - 1 {
+                    self.digits
+                        .get(index + 1)
+                        .map(|cost| (index + 1, *cost as u32))
+                } else {
+                    None
                 }
-                let dp = digit
-                    + if index >= self.n_cols {
-                        down_row[index % self.n_cols].min(right_value.unwrap_or(u32::MAX))
-                    } else {
-                        // bottom row in input matrix
-                        // No down row
-                        right_value.unwrap_or(0)
-                    };
-                down_row[index % self.n_cols] = dp;
-                right_value = Some(dp);
-                dp
-            })
-            .collect::<Vec<_>>();
-        shortest_costs_going_only_right_and_left.reverse();
-
-        for _ in 0..9 {
-            let prev_shortest = shortest_costs_going_only_right_and_left.clone();
-            shortest_costs_going_only_right_and_left
-                .iter_mut()
-                .enumerate()
-                .for_each(|(index, x)| {
-                    if index % (self.n_cols) != 0 {
-                        // look left
-                        *x = (*x).min(prev_shortest[index - 1]);
-                    }
-                    if index >= self.n_cols {
-                        // look up
-                        *x = (*x).min(prev_shortest[index - self.n_cols]);
-                    }
-                });
-        }
-        shortest_costs_going_only_right_and_left[0] - self.digits[0]
-        */
+                .into_iter(),
+            )
+            .chain(
+                self.digits
+                    .get(index - self.n_cols)
+                    .map(|cost| (index - self.n_cols, *cost as u32))
+                    .into_iter(),
+            )
+            .chain(
+                self.digits
+                    .get(index + self.n_cols)
+                    .map(|cost| (index + self.n_cols, *cost as u32))
+                    .into_iter(),
+            )
+        };
+        let success = |index: &usize| *index == self.digits.len() - 1;
+        dijkstra(&start, successors, success).unwrap().1
     }
 }
-
-/* loop up
- * 1.111....
- * 1.1.1....
- * 1.1.1....
- * 111.11...
- * .....1...
- * .....1111
- *
- * first estimate
- * 14  .  6  5  4
- * 13  . 21 12  3
- * 12  . 20 11  2
- * 11 10 11 10 1
- *
- * // do 9 passes where the cost becomes the min(self, neighbour up, left, right, down
- *
- * costs
- * 14  . 6  5  4
- * 13  . 7  .  3
- * 12  . 8  .  2
- * 11 10 9  10 1
- *
- * If path goes right, try going up until 9 away or find cheaper option
- * If path goes down, try going left
- * 1...
- * .....1...
- * .....1121
- * */
 
 #[aoc_generator(day15)]
 fn parse_input(data: &str) -> Matrix {

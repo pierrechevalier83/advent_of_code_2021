@@ -273,16 +273,14 @@ Found 5 outliers among 100 measurements (5.00%)
 ```
 
 ## Day 15
+
 ```
-Day15 - Part1/(default) time:   [4.1237 ms 4.1368 ms 4.1518 ms]
-Found 1 outliers among 100 measurements (1.00%)
-  1 (1.00%) high mild
+Day15 - Part1/(default) time:   [908.31 us 914.37 us 921.71 us]
+Found 8 outliers among 100 measurements (8.00%)
+  2 (2.00%) high mild
+  6 (6.00%) high severe
 
-Part 2: too slow for benchmarks
-Day 15 - Part 2 : 2876
-	generator: 43.79µs,
-	runner: 233.76458ms
-
+Day15 - Part2/(default) time:   [46.162 ms 46.431 ms 46.696 ms]
 ```
 
 ## Day 16
