@@ -294,3 +294,15 @@ Found 6 outliers among 100 measurements (6.00%)
 
 Day16 - Part2/(default) time:   [18.828 us 18.839 us 18.850 us]
 ```
+
+## Day 17
+
+```
+Day17 - Part1/(default) time:   [212.33 us 212.81 us 213.33 us]
+Found 4 outliers among 100 measurements (4.00%)
+  4 (4.00%) high mild
+
+Day17 - Part2/(default) time:   [238.28 us 239.56 us 240.78 us]
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high mild
+```
