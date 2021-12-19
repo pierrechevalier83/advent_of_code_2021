@@ -143,6 +143,30 @@ struct Scanner {
     beacons: Vec<Point>,
 }
 
+fn count_intersection<T>(left: &Vec<T>, right: &Vec<T>) -> usize
+where
+    T: Ord + Copy,
+{
+    let mut count = 0;
+    let mut left_iter = left.iter();
+    let right_iter = right.iter();
+    if let Some(mut left) = left_iter.next() {
+        for right in right_iter {
+            while left < right {
+                if let Some(l) = left_iter.next() {
+                    left = l;
+                } else {
+                    return count;
+                }
+            }
+            if left == right {
+                count += 1;
+            }
+        }
+    }
+    count
+}
+
 fn intersection<T>(left: &Vec<T>, right: &Vec<T>) -> Vec<T>
 where
     T: Ord + Copy,
@@ -194,15 +218,15 @@ impl Scanner {
                         .find_map(|(other_index, mut other_beacons)| {
                             self_beacons.sort_unstable();
                             other_beacons.sort_unstable();
-                            let intersection = intersection(&self_beacons, &other_beacons);
                             // Intersection in the reference frame of self
-                            if intersection.len() >= min_overlap {
+                            if count_intersection(&self_beacons, &other_beacons) >= min_overlap {
+                                let intersection = intersection(&self_beacons, &other_beacons);
                                 let first_self_intersecting = self
                                     .beacons
                                     .iter()
                                     .find(|b| {
                                         intersection
-                                            .contains(&b.relative_to(&self.beacons[self_index]))
+                                            .binary_search(&b.relative_to(&self.beacons[self_index])).is_ok()
                                     })
                                     .copied()
                                     .unwrap();
