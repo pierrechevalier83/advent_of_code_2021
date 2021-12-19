@@ -1,5 +1,4 @@
 use aoc_runner_derive::{aoc, aoc_generator};
-use std::collections::BTreeSet;
 use std::ops::Add;
 use std::ops::Sub;
 use std::str::FromStr;
@@ -144,13 +143,37 @@ struct Scanner {
     beacons: Vec<Point>,
 }
 
+fn intersection<T>(left: &Vec<T>, right: &Vec<T>) -> Vec<T>
+where
+    T: Ord + Copy,
+{
+    let mut intersection = Vec::with_capacity(left.len());
+    let mut left_iter = left.iter();
+    let right_iter = right.iter();
+    if let Some(mut left) = left_iter.next() {
+        for right in right_iter {
+            while left < right {
+                if let Some(l) = left_iter.next() {
+                    left = l;
+                } else {
+                    return intersection;
+                }
+            }
+            if left == right {
+                intersection.push(*left);
+            }
+        }
+    }
+    intersection
+}
+
 impl Scanner {
-    fn relative_to_each(&self) -> impl Iterator<Item = BTreeSet<Point>> + '_ {
+    fn relative_to_each(&self) -> impl Iterator<Item = Vec<Point>> + '_ {
         self.beacons.iter().map(|origin_beacon| {
             self.beacons
                 .iter()
                 .map(|b| b.relative_to(&origin_beacon))
-                .collect::<BTreeSet<Point>>()
+                .collect::<Vec<Point>>()
         })
     }
     fn nth_symmetry(&self, n: usize) -> Self {
@@ -162,17 +185,16 @@ impl Scanner {
         self.relative_to_each()
             .enumerate()
             .take(1 + self.beacons.len() - min_overlap)
-            .find_map(|(self_index, self_beacons)| {
+            .find_map(|(self_index, mut self_beacons)| {
                 (0..24).find_map(|sym_index| {
                     other
                         .nth_symmetry(sym_index)
                         .relative_to_each()
                         .enumerate()
-                        .find_map(|(other_index, other_beacons)| {
-                            let intersection = self_beacons
-                                .intersection(&other_beacons)
-                                .copied()
-                                .collect::<Vec<_>>();
+                        .find_map(|(other_index, mut other_beacons)| {
+                            self_beacons.sort_unstable();
+                            other_beacons.sort_unstable();
+                            let intersection = intersection(&self_beacons, &other_beacons);
                             // Intersection in the reference frame of self
                             if intersection.len() >= min_overlap {
                                 let first_self_intersecting = self
@@ -249,11 +271,13 @@ fn part1(data: &[Scanner]) -> usize {
     while reframed.iter().any(|x| x.is_none()) {
         let already_reframed = reframed.clone();
         for at_i in already_reframed.iter().filter_map(|x| x.clone()) {
-            for j in already_reframed
-                .iter()
-                .enumerate()
-                .filter_map(|(j, x)| if x.is_none() {Some(j)} else {None})
-            {
+            for j in already_reframed.iter().enumerate().filter_map(|(j, x)| {
+                if x.is_none() {
+                    Some(j)
+                } else {
+                    None
+                }
+            }) {
                 if let Some(frame) = at_i.find_overlap(&data[j], 12) {
                     reframed[j] = Some(data[j].reframed(frame));
                 }
@@ -273,15 +297,19 @@ fn part1(data: &[Scanner]) -> usize {
 fn part2(data: &[Scanner]) -> isize {
     let mut reframed = std::iter::repeat(None).take(data.len()).collect::<Vec<_>>();
     reframed[0] = Some(data[0].clone());
-    let mut scanner_pos = std::iter::repeat(Point::new(0, 0, 0)).take(data.len()).collect::<Vec<_>>();
+    let mut scanner_pos = std::iter::repeat(Point::new(0, 0, 0))
+        .take(data.len())
+        .collect::<Vec<_>>();
     while reframed.iter().any(|x| x.is_none()) {
         let already_reframed = reframed.clone();
         for at_i in already_reframed.iter().filter_map(|x| x.clone()) {
-            for j in already_reframed
-                .iter()
-                .enumerate()
-                .filter_map(|(j, x)| if x.is_none() {Some(j)} else {None})
-            {
+            for j in already_reframed.iter().enumerate().filter_map(|(j, x)| {
+                if x.is_none() {
+                    Some(j)
+                } else {
+                    None
+                }
+            }) {
                 if let Some(frame) = at_i.find_overlap(&data[j], 12) {
                     reframed[j] = Some(data[j].reframed(frame));
                     scanner_pos[j] = frame.origin;
@@ -291,8 +319,9 @@ fn part2(data: &[Scanner]) -> isize {
     }
     let mut max_manhattan_distance = 0;
     for i in 0..(scanner_pos.len() - 1) {
-        for j in (i+1)..scanner_pos.len() {
-            max_manhattan_distance = max_manhattan_distance.max(scanner_pos[i].manhattan_distance(&scanner_pos[j]));
+        for j in (i + 1)..scanner_pos.len() {
+            max_manhattan_distance =
+                max_manhattan_distance.max(scanner_pos[i].manhattan_distance(&scanner_pos[j]));
         }
     }
     max_manhattan_distance

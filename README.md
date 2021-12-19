@@ -306,3 +306,17 @@ Day17 - Part2/(default) time:   [238.28 us 239.56 us 240.78 us]
 Found 1 outliers among 100 measurements (1.00%)
   1 (1.00%) high mild
 ```
+
+## Day 19
+
+**Too slow for bench. Reporting result from `cargo aoc -d19` instead**
+
+```
+Day 19 - Part 1 : 365
+	generator: 237.042µs,
+	runner: 3.783194261s
+
+Day 19 - Part 2 : 11060
+	generator: 81.784µs,
+	runner: 3.742844507s
+```
