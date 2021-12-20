@@ -12,4 +12,5 @@ drawille = "0.3.0"
 pathfinding = "3.0.5"
 sorted-vec = "0.7.0"
 
-[features]
+[profile.release]
+debug = true

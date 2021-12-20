@@ -3,20 +3,28 @@ use std::ops::Add;
 use std::ops::Sub;
 use std::str::FromStr;
 
-fn count_intersection<T>(left: &Vec<T>, right: &Vec<T>) -> usize
+fn is_intersection_len_greater_or_eq<T>(left: &Vec<T>, right: &Vec<T>, target: usize) -> bool
 where
     T: Ord + Copy,
 {
     let mut count = 0;
-    let mut left_iter = left.iter();
-    let right_iter = right.iter();
-    if let Some(mut left) = left_iter.next() {
-        for right in right_iter {
+    let llen = left.len();
+    let rlen = right.len();
+    let mut left_iter = left.iter().enumerate();
+    if let Some((mut li, mut left)) = left_iter.next() {
+        for (ri, right) in right.iter().enumerate() {
+            if count + rlen - ri < target {
+                return false;
+            }
             while left < right {
-                if let Some(l) = left_iter.next() {
+                if count + llen - li < target {
+                    return false;
+                }
+                if let Some((i, l)) = left_iter.next() {
+                    li = i;
                     left = l;
                 } else {
-                    return count;
+                    return count >= target;
                 }
             }
             if left == right {
@@ -24,7 +32,7 @@ where
             }
         }
     }
-    count
+    count >= target
 }
 
 fn intersection<T>(left: &Vec<T>, right: &Vec<T>) -> Vec<T>
@@ -229,7 +237,7 @@ impl Scanner {
                     other.preprocessed[sym_index].iter().enumerate().find_map(
                         |(other_index, other_beacons)| {
                             // Intersection in the reference frame of self
-                            if count_intersection(&self_beacons, &other_beacons) >= min_overlap {
+                            if is_intersection_len_greater_or_eq(&self_beacons, &other_beacons, min_overlap) {
                                 let intersection = intersection(&self_beacons, &other_beacons);
                                 let first_self_intersecting = self
                                     .beacons
@@ -516,7 +524,7 @@ mod tests {
     use super::*;
     #[test]
     fn test_symmetries() {
-        let left = Scanner::from_str(
+        let mut left = Scanner::from_str(
             "--- scanner 0 ---
 -1,-1,1
 -2,-2,2
@@ -526,7 +534,7 @@ mod tests {
 8,0,7",
         )
         .unwrap();
-        let right = Scanner::from_str(
+        let mut right = Scanner::from_str(
             "--- scanner 0 ---
 1,-1,1
 2,-2,2
@@ -536,6 +544,8 @@ mod tests {
 -8,-7,0",
         )
         .unwrap();
+        left.preprocess();
+        right.preprocess();
         assert!(left.find_overlap(&right, 5).is_some());
     }
     #[test]

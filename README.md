@@ -312,11 +312,12 @@ Found 1 outliers among 100 measurements (1.00%)
 **Too slow for bench. Reporting result from `cargo aoc -d19` instead**
 
 ```
+AOC 2021
 Day 19 - Part 1 : 365
-	generator: 18.617452ms,
-	runner: 421.033022ms
+	generator: 7.28717ms,
+	runner: 269.107763ms
 
 Day 19 - Part 2 : 11060
-	generator: 5.030109ms,
-	runner: 376.966314ms
+	generator: 4.994979ms,
+	runner: 264.255539ms
 ```
