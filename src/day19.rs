@@ -237,7 +237,11 @@ impl Scanner {
                     other.preprocessed[sym_index].iter().enumerate().find_map(
                         |(other_index, other_beacons)| {
                             // Intersection in the reference frame of self
-                            if is_intersection_len_greater_or_eq(&self_beacons, &other_beacons, min_overlap) {
+                            if is_intersection_len_greater_or_eq(
+                                &self_beacons,
+                                &other_beacons,
+                                min_overlap,
+                            ) {
                                 let intersection = intersection(&self_beacons, &other_beacons);
                                 let first_self_intersecting = self
                                     .beacons

@@ -321,3 +321,15 @@ Day 19 - Part 2 : 11060
 	generator: 4.994979ms,
 	runner: 264.255539ms
 ```
+
+## Day 20
+
+```
+Day20 - Part1/(default) time:   [461.96 us 462.22 us 462.53 us]
+Found 1 outliers among 100 measurements (1.00%)
+  1 (1.00%) high mild
+
+Day20 - Part2/(default) time:   [23.782 ms 23.810 ms 23.846 ms]
+Found 2 outliers among 100 measurements (2.00%)
+  2 (2.00%) high mild
+```
