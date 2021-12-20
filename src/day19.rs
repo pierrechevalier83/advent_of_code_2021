@@ -303,17 +303,26 @@ impl FromStr for Scanner {
 fn parse_input(data: &str) -> Vec<Scanner> {
     data.split("\n\n")
         .map(|s| s.parse::<Scanner>().unwrap())
-        .map(|mut scanner| { scanner.preprocess(); scanner })
+        .map(|mut scanner| {
+            scanner.preprocess();
+            scanner
+        })
         .collect::<Vec<_>>()
 }
 
-#[aoc(day19, part1)]
-fn part1(data: &[Scanner]) -> usize {
+use std::collections::HashSet;
+
+fn all_scanners_in_reference_frame(data: &[Scanner]) -> Vec<(Point, Scanner)> {
     let mut reframed = std::iter::repeat(None).take(data.len()).collect::<Vec<_>>();
-    reframed[0] = Some(data[0].clone());
+    reframed[0] = Some((Point::new(0, 0, 0), data[0].clone()));
+    let mut seen = HashSet::new();
     while reframed.iter().any(|x| x.is_none()) {
         let already_reframed = reframed.clone();
-        for at_i in already_reframed.iter().filter_map(|x| x.clone()) {
+        for (i, at_i) in already_reframed
+            .iter()
+            .enumerate()
+            .filter_map(|(i, x)| x.clone().map(|x| (i, x)))
+        {
             for j in already_reframed.iter().enumerate().filter_map(|(j, x)| {
                 if x.is_none() {
                     Some(j)
@@ -321,15 +330,23 @@ fn part1(data: &[Scanner]) -> usize {
                     None
                 }
             }) {
-                if let Some(frame) = at_i.find_overlap(&data[j], 12) {
-                    reframed[j] = Some(data[j].reframed(frame));
+                if !seen.contains(&(i, j)) {
+                    if let Some(frame) = at_i.1.find_overlap(&data[j], 12) {
+                        reframed[j] = Some((frame.origin, data[j].reframed(frame)));
+                    }
+                    seen.insert((i, j));
                 }
             }
         }
     }
-    let mut all_beacons = reframed
+    reframed.iter().filter_map(|x| x.clone()).collect()
+}
+
+#[aoc(day19, part1)]
+fn part1(data: &[Scanner]) -> usize {
+    let mut all_beacons = all_scanners_in_reference_frame(data)
         .iter()
-        .flat_map(|b| b.clone().unwrap().beacons.clone())
+        .flat_map(|b| b.1.beacons.clone())
         .collect::<Vec<_>>();
     all_beacons.sort_unstable();
     all_beacons.dedup();
@@ -338,28 +355,10 @@ fn part1(data: &[Scanner]) -> usize {
 
 #[aoc(day19, part2)]
 fn part2(data: &[Scanner]) -> isize {
-    let mut reframed = std::iter::repeat(None).take(data.len()).collect::<Vec<_>>();
-    reframed[0] = Some(data[0].clone());
-    let mut scanner_pos = std::iter::repeat(Point::new(0, 0, 0))
-        .take(data.len())
+    let scanner_pos = all_scanners_in_reference_frame(data)
+        .iter()
+        .map(|b| b.0)
         .collect::<Vec<_>>();
-    while reframed.iter().any(|x| x.is_none()) {
-        let already_reframed = reframed.clone();
-        for at_i in already_reframed.iter().filter_map(|x| x.clone()) {
-            for j in already_reframed.iter().enumerate().filter_map(|(j, x)| {
-                if x.is_none() {
-                    Some(j)
-                } else {
-                    None
-                }
-            }) {
-                if let Some(frame) = at_i.find_overlap(&data[j], 12) {
-                    reframed[j] = Some(data[j].reframed(frame));
-                    scanner_pos[j] = frame.origin;
-                }
-            }
-        }
-    }
     let mut max_manhattan_distance = 0;
     for i in 0..(scanner_pos.len() - 1) {
         for j in (i + 1)..scanner_pos.len() {

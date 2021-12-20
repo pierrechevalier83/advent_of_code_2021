@@ -313,10 +313,10 @@ Found 1 outliers among 100 measurements (1.00%)
 
 ```
 Day 19 - Part 1 : 365
-	generator: 7.551869ms,
-	runner: 974.025776ms
+	generator: 18.617452ms,
+	runner: 421.033022ms
 
 Day 19 - Part 2 : 11060
-	generator: 5.212185ms,
-	runner: 937.837026ms
+	generator: 5.030109ms,
+	runner: 376.966314ms
 ```
