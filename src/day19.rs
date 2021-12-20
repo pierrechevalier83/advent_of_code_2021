@@ -3,6 +3,54 @@ use std::ops::Add;
 use std::ops::Sub;
 use std::str::FromStr;
 
+fn count_intersection<T>(left: &Vec<T>, right: &Vec<T>) -> usize
+where
+    T: Ord + Copy,
+{
+    let mut count = 0;
+    let mut left_iter = left.iter();
+    let right_iter = right.iter();
+    if let Some(mut left) = left_iter.next() {
+        for right in right_iter {
+            while left < right {
+                if let Some(l) = left_iter.next() {
+                    left = l;
+                } else {
+                    return count;
+                }
+            }
+            if left == right {
+                count += 1;
+            }
+        }
+    }
+    count
+}
+
+fn intersection<T>(left: &Vec<T>, right: &Vec<T>) -> Vec<T>
+where
+    T: Ord + Copy,
+{
+    let mut intersection = Vec::with_capacity(left.len());
+    let mut left_iter = left.iter();
+    let right_iter = right.iter();
+    if let Some(mut left) = left_iter.next() {
+        for right in right_iter {
+            while left < right {
+                if let Some(l) = left_iter.next() {
+                    left = l;
+                } else {
+                    return intersection;
+                }
+            }
+            if left == right {
+                intersection.push(*left);
+            }
+        }
+    }
+    intersection
+}
+
 #[derive(Debug, Eq, PartialEq, Ord, PartialOrd, Clone, Copy)]
 struct Point {
     x: isize,
@@ -141,83 +189,45 @@ impl ReferenceFrame {
 #[derive(Debug, Clone)]
 struct Scanner {
     beacons: Vec<Point>,
-}
-
-fn count_intersection<T>(left: &Vec<T>, right: &Vec<T>) -> usize
-where
-    T: Ord + Copy,
-{
-    let mut count = 0;
-    let mut left_iter = left.iter();
-    let right_iter = right.iter();
-    if let Some(mut left) = left_iter.next() {
-        for right in right_iter {
-            while left < right {
-                if let Some(l) = left_iter.next() {
-                    left = l;
-                } else {
-                    return count;
-                }
-            }
-            if left == right {
-                count += 1;
-            }
-        }
-    }
-    count
-}
-
-fn intersection<T>(left: &Vec<T>, right: &Vec<T>) -> Vec<T>
-where
-    T: Ord + Copy,
-{
-    let mut intersection = Vec::with_capacity(left.len());
-    let mut left_iter = left.iter();
-    let right_iter = right.iter();
-    if let Some(mut left) = left_iter.next() {
-        for right in right_iter {
-            while left < right {
-                if let Some(l) = left_iter.next() {
-                    left = l;
-                } else {
-                    return intersection;
-                }
-            }
-            if left == right {
-                intersection.push(*left);
-            }
-        }
-    }
-    intersection
+    // for each of the 24 symmetries,
+    // for each point, relative to that point
+    // all points, sorted
+    preprocessed: Vec<Vec<Vec<Point>>>,
 }
 
 impl Scanner {
-    fn relative_to_each(&self) -> impl Iterator<Item = Vec<Point>> + '_ {
-        self.beacons.iter().map(|origin_beacon| {
-            self.beacons
+    fn relative_to_each(beacons: &[Point]) -> impl Iterator<Item = Vec<Point>> + '_ {
+        beacons.iter().map(|origin_beacon| {
+            beacons
                 .iter()
                 .map(|b| b.relative_to(&origin_beacon))
                 .collect::<Vec<Point>>()
         })
     }
-    fn nth_symmetry(&self, n: usize) -> Self {
-        Self {
-            beacons: self.beacons.iter().map(|b| b.nth_symmetry(n)).collect(),
-        }
+    fn nth_symmetry(&self, n: usize) -> Vec<Point> {
+        self.beacons.iter().map(|b| b.nth_symmetry(n)).collect()
+    }
+    fn preprocess(&mut self) {
+        self.preprocessed = (0..24)
+            .map(|sym_index| {
+                Self::relative_to_each(&self.nth_symmetry(sym_index))
+                    .map(|mut v| {
+                        v.sort_unstable();
+                        v
+                    })
+                    .collect()
+            })
+            .collect()
     }
     fn find_overlap(&self, other: &Scanner, min_overlap: usize) -> Option<ReferenceFrame> {
-        self.relative_to_each()
+        self.preprocessed[0]
+            .iter()
             .enumerate()
             .take(1 + self.beacons.len() - min_overlap)
-            .find_map(|(self_index, mut self_beacons)| {
+            .find_map(|(self_index, self_beacons)| {
                 (0..24).find_map(|sym_index| {
-                    other
-                        .nth_symmetry(sym_index)
-                        .relative_to_each()
-                        .enumerate()
-                        .find_map(|(other_index, mut other_beacons)| {
-                            self_beacons.sort_unstable();
-                            other_beacons.sort_unstable();
+                    other.preprocessed[sym_index].iter().enumerate().find_map(
+                        |(other_index, other_beacons)| {
                             // Intersection in the reference frame of self
                             if count_intersection(&self_beacons, &other_beacons) >= min_overlap {
                                 let intersection = intersection(&self_beacons, &other_beacons);
@@ -226,7 +236,10 @@ impl Scanner {
                                     .iter()
                                     .find(|b| {
                                         intersection
-                                            .binary_search(&b.relative_to(&self.beacons[self_index])).is_ok()
+                                            .binary_search(
+                                                &b.relative_to(&self.beacons[self_index]),
+                                            )
+                                            .is_ok()
                                     })
                                     .copied()
                                     .unwrap();
@@ -254,18 +267,22 @@ impl Scanner {
                             } else {
                                 None
                             }
-                        })
+                        },
+                    )
                 })
             })
     }
     fn reframed(&self, frame: ReferenceFrame) -> Self {
-        Self {
+        let mut reframed = Self {
             beacons: self
                 .beacons
                 .iter()
                 .map(|b| frame.convert_point_to_base_reference_frame(*b))
                 .collect(),
-        }
+            preprocessed: Vec::new(),
+        };
+        reframed.preprocess();
+        reframed
     }
 }
 
@@ -277,6 +294,7 @@ impl FromStr for Scanner {
             beacons: lines
                 .map(|line| Point::from_str(line))
                 .collect::<Result<_, _>>()?,
+            preprocessed: Vec::new(),
         })
     }
 }
@@ -284,7 +302,8 @@ impl FromStr for Scanner {
 #[aoc_generator(day19)]
 fn parse_input(data: &str) -> Vec<Scanner> {
     data.split("\n\n")
-        .map(|s| s.parse().unwrap())
+        .map(|s| s.parse::<Scanner>().unwrap())
+        .map(|mut scanner| { scanner.preprocess(); scanner })
         .collect::<Vec<_>>()
 }
 
