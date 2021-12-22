@@ -56,7 +56,7 @@ impl Input {
             enhancement_algorithm: self.enhancement_algorithm,
             image: Vec::with_capacity((self.n_cols + 2) * (self.n_rows() + 2)),
             n_cols: self.n_cols + 2,
-            parity: !self.parity
+            parity: !self.parity,
         };
 
         for row in -1..self.n_rows() as isize + 1 {
@@ -128,9 +128,7 @@ fn parse_input(data: &str) -> Input {
 
 #[aoc(day20, part1)]
 fn part1(data: &Input) -> usize {
-    data.enhance()
-        .enhance()
-        .num_lit_pixels()
+    data.enhance().enhance().num_lit_pixels()
 }
 
 #[aoc(day20, part2)]
