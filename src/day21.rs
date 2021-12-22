@@ -132,6 +132,8 @@ Player 2 starting position: 8";
     fn test_part1() {
         assert_eq!(part1(&input()), 551901)
     }
+    // TODO:
+    /*
     #[test]
     fn test_part2_given_example_input() {
         assert_eq!(part2(&example_input()), 444356092776315)
@@ -140,4 +142,5 @@ Player 2 starting position: 8";
     fn test_part2() {
         assert_eq!(part2(&input()), 0)
     }
+    */
 }
